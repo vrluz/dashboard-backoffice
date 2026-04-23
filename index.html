@@ -452,7 +452,13 @@
                 <div class="brand-icon">B</div>
                 <span class="brand-title">Gestão de Backoffice &amp; Suporte</span>
             </div>
-            <div class="header-meta" id="last-update">--/--/----</div>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div class="header-meta" id="last-update" style="display:none;"></div>
+                <button id="btn-refresh-github" onclick="autoLoadFromGitHub()" style="display:none; align-items:center; gap:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:#94a3b8; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:500; cursor:pointer; font-family:'DM Sans',sans-serif; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.14)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Atualizar
+                </button>
+            </div>
         </div>
 
         <!-- TABS (hidden until data loaded) -->
@@ -477,22 +483,33 @@
                         d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                 </svg>
             </div>
-            <h2 class="upload-title">Carregar Dados do Sienge / Backoffice</h2>
-            <p class="upload-desc">Selecione a planilha exportada <strong>(.csv ou .xlsx)</strong>. O sistema processa tempos com base em <strong>Dias Úteis (Seg–Sex, 10h/dia)</strong> e lê a coluna de Área com 100% de fidelidade ao arquivo original.</p>
+            <h2 class="upload-title">Gestão de Backoffice &amp; Suporte</h2>
+            <p class="upload-desc">O sistema busca automaticamente o arquivo <strong>dados.csv</strong> no GitHub. Caso não encontre, o upload manual fica disponível abaixo.</p>
 
-            <label for="file-upload" class="upload-btn">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
-                </svg>
-                Selecionar Planilha (.csv, .xlsx)
-                <input id="file-upload" type="file" style="display:none;" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
-            </label>
+            <!-- Status da busca no GitHub -->
+            <div id="github-status" style="display:none; align-items:center; justify-content:center; gap:8px; font-size:13px; font-weight:600; color:#2563eb; margin-bottom:1.25rem;">
+                <div class="spinner"></div> Buscando dados.csv no GitHub...
+            </div>
 
-            <div id="loading-msg" style="display:none; margin-top:1.2rem; font-size:13px; font-weight:600; color:#2563eb; align-items:center; justify-content:center; gap:8px; display:none;">
+            <!-- Seção manual — aparece apenas se GitHub falhar -->
+            <div id="manual-upload-section" style="display:none;">
+                <div style="border-top:1px solid var(--border); padding-top:1.25rem; margin-top:0.25rem;">
+                    <p style="font-size:12px; color:var(--text-muted); margin:0 0 1rem;">ou carregue manualmente:</p>
+                    <label for="file-upload" class="upload-btn">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                        </svg>
+                        Selecionar Planilha (.csv, .xlsx)
+                        <input id="file-upload" type="file" style="display:none;" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+                    </label>
+                </div>
+            </div>
+
+            <div id="loading-msg" style="display:none; margin-top:1.2rem; font-size:13px; font-weight:600; color:#2563eb; align-items:center; justify-content:center; gap:8px;">
                 <div class="spinner"></div> Processando dados e gerando o dashboard...
             </div>
 
-            <div class="upload-note">
+            <div class="upload-note" style="margin-top:1.5rem;">
                 <span></span> Processamento 100% local — seus dados não são enviados a nenhum servidor
             </div>
         </div>
@@ -901,15 +918,103 @@
             }).join('');
         }
 
+        // ── CONFIGURAÇÃO DO GITHUB ──
+        const GITHUB_USER = 'vrluz';
+        const GITHUB_REPO = 'dashboard-backoffice';
+        const GITHUB_BRANCH = 'main';
+        const GITHUB_FILE = 'dados.csv';
+        // URLs de busca — tenta raw primeiro, depois API como fallback
+        const GITHUB_RAW_URL = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${GITHUB_FILE}`;
+        const GITHUB_API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${GITHUB_FILE}?ref=${GITHUB_BRANCH}`;
+
         // ── STATE ──
         let rawData = [];
         let currentFilter = { area: 'all', resp: 'all', prio: 'all', status: 'all' };
         let charts = {};
 
-        window.addEventListener('DOMContentLoaded', renderRoadmapTab);
+        window.addEventListener('DOMContentLoaded', () => {
+            renderRoadmapTab();
+            autoLoadFromGitHub();
+        });
 
-        // ── FILE UPLOAD ──
-        document.getElementById('file-upload').addEventListener('change', function(e) {
+        // ── AUTO LOAD DO GITHUB ──
+        async function autoLoadFromGitHub() {
+            const dashboardVisible = document.getElementById('dashboard-main').style.display === 'block';
+            const statusEl = document.getElementById('github-status');
+            const manualSection = document.getElementById('manual-upload-section');
+            const refreshBtn = document.getElementById('btn-refresh-github');
+            const svgRefresh = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>';
+
+            if (dashboardVisible) {
+                refreshBtn.innerHTML = '<div class="spinner" style="border-color:#334155;border-top-color:#94a3b8;width:12px;height:12px;"></div>&nbsp;Atualizando...';
+                refreshBtn.disabled = true;
+            } else {
+                statusEl.style.display = 'flex';
+                statusEl.innerHTML = '<div class="spinner"></div>&nbsp;Buscando <strong>' + GITHUB_FILE + '</strong> no GitHub...';
+            }
+
+            let csvText = null;
+
+            // Tentativa 1: raw.githubusercontent.com (sem cache-buster para evitar CORS preflight)
+            try {
+                const r = await fetch(GITHUB_RAW_URL, { cache: 'no-cache' });
+                if (r.ok) {
+                    const t = await r.text();
+                    if (t && t.trim().length > 0) csvText = t;
+                }
+            } catch (_) {}
+
+            // Tentativa 2: GitHub API (retorna base64, CORS sempre liberado)
+            if (!csvText) {
+                try {
+                    const r = await fetch(GITHUB_API_URL, {
+                        headers: { 'Accept': 'application/vnd.github.v3+json' }
+                    });
+                    if (r.ok) {
+                        const json = await r.json();
+                        if (json.content) {
+                            // Decodifica base64 com suporte a UTF-8
+                            const binary = atob(json.content.replace(/\n/g, ''));
+                            const bytes = new Uint8Array(binary.length);
+                            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                            csvText = new TextDecoder('utf-8').decode(bytes);
+                        }
+                    }
+                } catch (_) {}
+            }
+
+            // Sucesso
+            if (csvText) {
+                if (csvText.startsWith('ListSchema=')) csvText = csvText.replace(/^ListSchema=.*\r?\n?/, '');
+
+                if (!dashboardVisible) {
+                    statusEl.innerHTML = '<span style="color:#059669;font-size:15px;">&#10003;</span>&nbsp;<strong>' + GITHUB_FILE + '</strong> carregado — processando...';
+                }
+
+                Papa.parse(csvText, {
+                    header: true, skipEmptyLines: true,
+                    complete: r => {
+                        processData(r.data);
+                        refreshBtn.innerHTML = svgRefresh + '&nbsp;Atualizar';
+                        refreshBtn.disabled = false;
+                    }
+                });
+                return;
+            }
+
+            // Falha total — exibe upload manual
+            if (dashboardVisible) {
+                refreshBtn.innerHTML = svgRefresh + '&nbsp;Atualizar';
+                refreshBtn.disabled = false;
+            } else {
+                statusEl.innerHTML = '<span style="color:#dc2626;font-size:15px;">&#9888;</span>&nbsp;<strong>' + GITHUB_FILE + '</strong> não encontrado. Carregue manualmente:';
+                manualSection.style.display = 'block';
+            }
+        }
+
+        // ── FILE UPLOAD (manual fallback) ──
+        document.addEventListener('change', function(e) {
+            if (e.target.id !== 'file-upload') return;
             const file = e.target.files[0];
             if (!file) return;
 
@@ -1046,6 +1151,8 @@
             }
 
             document.getElementById('last-update').innerText = 'Atualizado: ' + new Date().toLocaleDateString('pt-BR');
+            document.getElementById('last-update').style.display = 'block';
+            document.getElementById('btn-refresh-github').style.display = 'flex';
             document.getElementById('upload-screen').style.display = 'none';
             document.getElementById('dashboard-main').style.display = 'block';
             document.getElementById('top-nav').style.display = 'block';
