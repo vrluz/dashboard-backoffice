@@ -4,1440 +4,721 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Gerencial de Backoffice & Ações</title>
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-
     <style>
         :root {
-            --bg-base: #f0f2f7;
-            --bg-card: #ffffff;
-            --bg-sidebar: #0f1729;
-            --accent-blue: #2563eb;
-            --accent-blue-light: #eff6ff;
-            --accent-green: #059669;
-            --accent-amber: #d97706;
-            --accent-red: #dc2626;
-            --accent-purple: #7c3aed;
-            --text-primary: #0f172a;
-            --text-secondary: #64748b;
-            --text-muted: #94a3b8;
-            --border: #e2e8f0;
-            --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --bg-base:#f0f2f7; --bg-card:#fff; --bg-sidebar:#0f1729;
+            --accent-blue:#2563eb; --accent-blue-light:#eff6ff;
+            --accent-green:#059669; --accent-amber:#d97706;
+            --accent-red:#dc2626; --accent-purple:#7c3aed;
+            --text-primary:#0f172a; --text-secondary:#64748b; --text-muted:#94a3b8;
+            --border:#e2e8f0;
+            --shadow:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md:0 4px 12px rgba(0,0,0,0.08);
         }
+        *{box-sizing:border-box}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg-base);color:var(--text-primary);margin:0;min-height:100vh;display:flex;flex-direction:column}
+        ::-webkit-scrollbar{width:6px;height:6px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:99px}
+        ::-webkit-scrollbar-thumb:hover{background:#94a3b8}
 
-        * { box-sizing: border-box; }
+        /* HEADER */
+        .top-header{background:var(--bg-sidebar);position:sticky;top:0;z-index:50;box-shadow:0 2px 16px rgba(0,0,0,0.18)}
+        .header-inner{max-width:1400px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:60px}
+        .brand{display:flex;align-items:center;gap:10px}
+        .brand-icon{width:34px;height:34px;background:var(--accent-blue);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff;flex-shrink:0}
+        .brand-title{font-size:15px;font-weight:600;letter-spacing:-0.01em;color:#f1f5f9}
+        .tabs-nav{background:var(--bg-sidebar);border-top:1px solid rgba(255,255,255,0.06)}
+        .tabs-inner{max-width:1400px;margin:0 auto;padding:0 2rem;display:flex;overflow-x:auto}
+        .tabs-inner::-webkit-scrollbar{height:0}
+        .tab-btn{padding:12px 18px;font-size:13px;font-weight:500;color:#94a3b8;background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s,border-color .15s;font-family:'DM Sans',sans-serif}
+        .tab-btn:hover{color:#e2e8f0}
+        .tab-btn.active{color:#fff;border-bottom-color:var(--accent-blue);font-weight:600}
+        .btn-refresh{display:none;align-items:center;gap:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#94a3b8;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s}
+        .btn-refresh:hover{background:rgba(255,255,255,0.14)}
+        .header-meta{font-size:12px;color:#64748b;font-family:'DM Mono',monospace;display:none}
 
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: var(--bg-base);
-            color: var(--text-primary);
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+        /* UPLOAD */
+        #upload-screen{flex:1;display:flex;align-items:center;justify-content:center;padding:3rem 1.5rem}
+        .upload-card{background:#fff;border-radius:16px;box-shadow:var(--shadow-md);padding:3rem;max-width:520px;width:100%;text-align:center;border:1px solid var(--border)}
+        .upload-icon-wrap{width:72px;height:72px;background:var(--accent-blue-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem}
+        .upload-icon-wrap svg{width:32px;height:32px;color:var(--accent-blue)}
+        .upload-title{font-size:22px;font-weight:700;color:var(--text-primary);margin:0 0 .5rem}
+        .upload-desc{font-size:13px;color:var(--text-secondary);line-height:1.6;margin:0 0 1.5rem}
+        .status-box{display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;font-weight:600;min-height:40px;margin-bottom:.5rem}
+        .upload-manual{display:none;border-top:1px solid var(--border);padding-top:1.25rem;margin-top:.75rem}
+        .upload-manual p{font-size:12px;color:var(--text-muted);margin:0 0 1rem}
+        .upload-btn{display:inline-flex;align-items:center;gap:8px;background:var(--accent-blue);color:#fff;border:none;cursor:pointer;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;transition:background .15s,transform .1s}
+        .upload-btn:hover{background:#1d4ed8}
+        .upload-btn:active{transform:scale(.98)}
+        .upload-note{margin-top:1.5rem;display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:var(--text-muted)}
+        .upload-note span{display:inline-block;width:6px;height:6px;border-radius:50%;background:#10b981}
+        .spinner{width:16px;height:16px;border:2px solid #bfdbfe;border-top-color:var(--accent-blue);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+        @keyframes spin{to{transform:rotate(360deg)}}
 
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        /* ── HEADER ── */
-        .top-header {
-            background: var(--bg-sidebar);
-            color: white;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            box-shadow: 0 2px 16px rgba(0,0,0,0.18);
-        }
-        .header-inner {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 60px;
-        }
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .brand-icon {
-            width: 34px; height: 34px;
-            background: var(--accent-blue);
-            border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 16px; color: white;
-            flex-shrink: 0;
-        }
-        .brand-title {
-            font-size: 15px; font-weight: 600;
-            letter-spacing: -0.01em;
-            color: #f1f5f9;
-        }
-        .header-meta {
-            font-size: 12px;
-            color: #64748b;
-            font-family: 'DM Mono', monospace;
-        }
-
-        /* ── TABS NAV ── */
-        .tabs-nav {
-            background: var(--bg-sidebar);
-            border-top: 1px solid rgba(255,255,255,0.06);
-        }
-        .tabs-inner {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: flex;
-            gap: 0;
-            overflow-x: auto;
-        }
-        .tabs-inner::-webkit-scrollbar { height: 0; }
-        .tab-btn {
-            padding: 12px 18px;
-            font-size: 13px;
-            font-weight: 500;
-            color: #94a3b8;
-            background: none;
-            border: none;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            white-space: nowrap;
-            transition: color 0.15s, border-color 0.15s;
-            font-family: 'DM Sans', sans-serif;
-        }
-        .tab-btn:hover { color: #e2e8f0; }
-        .tab-btn.active {
-            color: #ffffff;
-            border-bottom-color: var(--accent-blue);
-            font-weight: 600;
-        }
-
-        /* ── UPLOAD SCREEN ── */
-        #upload-screen {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 3rem 1.5rem;
-        }
-        .upload-card {
-            background: white;
-            border-radius: 16px;
-            box-shadow: var(--shadow-md);
-            padding: 3rem;
-            max-width: 540px;
-            width: 100%;
-            text-align: center;
-            border: 1px solid var(--border);
-        }
-        .upload-icon-wrap {
-            width: 72px; height: 72px;
-            background: var(--accent-blue-light);
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 1.5rem;
-        }
-        .upload-icon-wrap svg { width: 32px; height: 32px; color: var(--accent-blue); }
-        .upload-title { font-size: 22px; font-weight: 700; color: var(--text-primary); margin: 0 0 0.5rem; }
-        .upload-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin: 0 0 2rem; }
-        .upload-btn {
-            display: inline-flex; align-items: center; gap: 8px;
-            background: var(--accent-blue);
-            color: white;
-            border: none; cursor: pointer;
-            padding: 12px 28px;
-            border-radius: 8px;
-            font-size: 14px; font-weight: 600;
-            font-family: 'DM Sans', sans-serif;
-            transition: background 0.15s, transform 0.1s;
-        }
-        .upload-btn:hover { background: #1d4ed8; }
-        .upload-btn:active { transform: scale(0.98); }
-        .upload-note {
-            margin-top: 1.5rem;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-            font-size: 11px; color: var(--text-muted);
-        }
-        .upload-note span { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981; }
-        #loading-msg {
-            margin-top: 1.2rem; font-size: 13px; font-weight: 600;
-            color: var(--accent-blue);
-            display: none;
-            align-items: center; justify-content: center; gap: 8px;
-        }
-        .spinner {
-            width: 16px; height: 16px;
-            border: 2px solid #bfdbfe;
-            border-top-color: var(--accent-blue);
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* ── MAIN LAYOUT ── */
-        #dashboard-main {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 1.5rem 2rem;
-            width: 100%;
-        }
-
-        /* ── FILTERS ── */
-        .filters-bar {
-            background: white;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            padding: 1rem 1.25rem;
-            margin-bottom: 1.5rem;
-            box-shadow: var(--shadow);
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            align-items: flex-end;
-        }
-        .filter-group { display: flex; flex-direction: column; gap: 4px; min-width: 150px; flex: 1; }
-        .filter-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-        .filter-select {
-            border: 1px solid var(--border);
-            border-radius: 7px;
-            padding: 7px 10px;
-            font-size: 13px;
-            font-family: 'DM Sans', sans-serif;
-            color: var(--text-primary);
-            background: white;
-            outline: none;
-            transition: border-color 0.15s;
-        }
-        .filter-select:focus { border-color: var(--accent-blue); }
-        .filter-actions { display: flex; gap: 8px; align-items: flex-end; padding-bottom: 1px; flex-shrink: 0; }
-        .btn-ghost {
-            padding: 7px 14px; border-radius: 7px; font-size: 13px; font-weight: 500;
-            border: 1px solid var(--border); background: white; cursor: pointer;
-            color: var(--text-secondary); font-family: 'DM Sans', sans-serif;
-            transition: background 0.15s, color 0.15s;
-        }
-        .btn-ghost:hover { background: #f8fafc; color: var(--text-primary); }
-        .btn-link { padding: 7px 14px; font-size: 13px; font-weight: 500; border: none; background: none; cursor: pointer; color: var(--accent-blue); font-family: 'DM Sans', sans-serif; }
-        .btn-link:hover { text-decoration: underline; }
-
-        /* ── SECTION HEADER ── */
-        .section-header { margin-bottom: 1.25rem; }
-        .section-title { font-size: 19px; font-weight: 700; color: var(--text-primary); margin: 0 0 4px; letter-spacing: -0.02em; }
-        .section-subtitle { font-size: 13px; color: var(--text-secondary); margin: 0; }
-
-        /* ── KPI CARDS ── */
-        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
-        @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 500px) { .kpi-grid { grid-template-columns: 1fr; } }
-        .kpi-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.25rem;
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-            position: relative;
-            overflow: hidden;
-        }
-        .kpi-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0;
-            width: 4px; height: 100%;
-            border-radius: 12px 0 0 12px;
-        }
-        .kpi-card.blue::before { background: var(--accent-blue); }
-        .kpi-card.green::before { background: var(--accent-green); }
-        .kpi-card.purple::before { background: var(--accent-purple); }
-        .kpi-card.red::before { background: var(--accent-red); }
-        .kpi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
-        .kpi-value { font-size: 32px; font-weight: 700; color: var(--text-primary); margin: 6px 0 0; line-height: 1; letter-spacing: -0.03em; }
-
-        /* ── CHART CARDS ── */
-        .chart-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
-        @media (max-width: 900px) { .chart-grid-2 { grid-template-columns: 1fr; } }
-        .card {
-            background: white;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-            padding: 1.25rem;
-        }
-        .card-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin: 0 0 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
-        .chart-wrap { position: relative; width: 100%; height: 280px; }
-
-        /* ── TABLES ── */
-        .table-wrap { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        thead th {
-            padding: 10px 14px;
-            text-align: left;
-            font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
-            color: var(--text-muted);
-            background: #f8fafc;
-            border-bottom: 1px solid var(--border);
-            white-space: nowrap;
-        }
-        tbody td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
-        tbody tr:hover { background: #fafbfc; }
-        tbody tr:last-child td { border-bottom: none; }
-        .truncate-cell { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .badge {
-            display: inline-flex; align-items: center;
-            padding: 3px 8px; border-radius: 99px;
-            font-size: 11px; font-weight: 600;
-        }
-        .badge-gray { background: #f1f5f9; color: #475569; }
-        .badge-red { background: #fee2e2; color: #991b1b; }
-        .badge-orange { background: #fef3c7; color: #92400e; }
-
-        /* ── BACKLOG KPIs ── */
-        .backlog-kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
-        @media (max-width: 600px) { .backlog-kpi-grid { grid-template-columns: 1fr; } }
-        .backlog-kpi-card {
-            background: white; border-radius: 12px; padding: 1.5rem;
-            border: 1px solid var(--border); box-shadow: var(--shadow);
-            display: flex; align-items: center; gap: 1rem;
-        }
-        .backlog-kpi-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .backlog-kpi-icon.orange { background: #fff7ed; color: #ea580c; }
-        .backlog-kpi-icon.red { background: #fef2f2; color: #dc2626; }
-        .backlog-kpi-icon svg { width: 24px; height: 24px; }
-        .backlog-kpi-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
-        .backlog-kpi-value { font-size: 36px; font-weight: 700; color: var(--text-primary); line-height: 1; margin-top: 4px; letter-spacing: -0.03em; }
-        .backlog-kpi-value.red-val { color: var(--accent-red); }
-
-        /* ── EXPORT BTN ── */
-        .btn-export {
-            display: inline-flex; align-items: center; gap: 7px;
-            background: #059669; color: white; border: none; cursor: pointer;
-            padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
-            font-family: 'DM Sans', sans-serif; transition: background 0.15s;
-        }
-        .btn-export:hover { background: #047857; }
-        .btn-export svg { width: 15px; height: 15px; }
-
-        /* ── AREAS VIEW ── */
-        .areas-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
-        @media (max-width: 900px) { .areas-grid { grid-template-columns: 1fr; } }
-        .req-list { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow-y: auto; }
-        .req-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
-        .req-item:last-child { border-bottom: none; }
-        .req-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
-        .req-area { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-        .req-count { background: #f1f5f9; color: #475569; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
-
-        /* ── ROADMAP ── */
-        .roadmap-section-title {
-            font-size: 14px; font-weight: 700; color: var(--text-primary);
-            display: flex; align-items: center; gap: 8px;
-            padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);
-            margin-bottom: 1rem;
-        }
-        .roadmap-section-title .dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
-        .roadmap-ai-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
-        @media (max-width: 900px) { .roadmap-ai-grid { grid-template-columns: 1fr; } }
-        .roadmap-ai-card {
-            background: white; border-radius: 12px; border: 1px solid var(--border);
-            box-shadow: var(--shadow); padding: 1.25rem;
-            display: flex; flex-direction: column;
-            transition: box-shadow 0.2s, transform 0.2s;
-        }
-        .roadmap-ai-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
-        .roadmap-ai-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; gap: 8px; }
-        .roadmap-ai-title { font-size: 14px; font-weight: 700; color: var(--text-primary); line-height: 1.3; }
-        .roadmap-badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 99px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.04em; }
-        .roadmap-ai-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.6; flex-grow: 1; margin-bottom: 1rem; }
-        .roadmap-next {
-            background: #f8fafc; border: 1px solid var(--border); border-radius: 8px;
-            padding: 10px 12px; margin-top: auto;
-        }
-        .roadmap-next-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); display: block; margin-bottom: 4px; }
-        .roadmap-next-text { font-size: 12px; font-weight: 600; color: var(--text-primary); }
-
-        .roadmap-two-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; }
-        @media (max-width: 900px) { .roadmap-two-grid { grid-template-columns: 1fr; } }
-        .roadmap-info-card {
-            background: white; border-radius: 12px; border: 1px solid var(--border);
-            box-shadow: var(--shadow); padding: 1.25rem;
-        }
-        .roadmap-info-item { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; font-size: 13px; color: var(--text-secondary); border-bottom: 1px solid #f1f5f9; }
-        .roadmap-info-item:last-child { border-bottom: none; }
-        .roadmap-info-item .bullet { width: 7px; height: 7px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
-
-        .roadmap-timeline-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
-        @media (max-width: 1100px) { .roadmap-timeline-grid { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 700px) { .roadmap-timeline-grid { grid-template-columns: repeat(2, 1fr); } }
-        .roadmap-q-card {
-            background: white; border-radius: 12px; border: 1px solid var(--border);
-            box-shadow: var(--shadow); padding: 1rem;
-            border-top: 3px solid #10b981;
-        }
-        .roadmap-q-card.backlog-q { border-top-color: #cbd5e1; background: #f8fafc; }
-        .roadmap-q-title { font-size: 13px; font-weight: 700; text-align: center; color: var(--text-primary); padding-bottom: 0.6rem; border-bottom: 1px solid var(--border); margin-bottom: 0.75rem; }
-        .roadmap-q-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-        .roadmap-q-item { display: flex; gap: 8px; align-items: flex-start; font-size: 11px; line-height: 1.4; }
-        .q-dot { font-size: 12px; margin-top: 1px; flex-shrink: 0; line-height: 1; }
-        .q-done { color: #059669; }
-        .q-active { color: var(--accent-blue); }
-        .q-pending { color: #94a3b8; }
-        .q-backlog { color: #cbd5e1; }
-        .q-text-done { color: var(--text-primary); font-weight: 500; }
-        .q-text-active { color: var(--text-primary); font-weight: 600; }
-        .q-text-pending { color: var(--text-secondary); }
-        .q-text-backlog { color: var(--text-muted); font-style: italic; }
-
-        /* ── INSIGHTS CARDS ── */
-        .insights-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        @media (max-width: 900px) { .insights-grid { grid-template-columns: 1fr; } }
-        .insight-card {
-            background: white; border-radius: 12px; border: 1px solid var(--border);
-            box-shadow: var(--shadow); padding: 1.25rem;
-            border-left: 4px solid var(--accent-blue);
-            display: flex; gap: 1rem;
-            transition: box-shadow 0.2s;
-        }
-        .insight-card:hover { box-shadow: var(--shadow-md); }
-        .insight-icon {
-            width: 44px; height: 44px; border-radius: 10px;
-            background: var(--accent-blue-light); color: var(--accent-blue);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 18px; font-weight: 800; flex-shrink: 0;
-        }
-        .insight-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin: 0 0 6px; }
-        .insight-desc { font-size: 12px; color: var(--text-secondary); margin: 0 0 10px; line-height: 1.6; }
-        .insight-action-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
-        .insight-action-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-blue); display: block; margin-bottom: 4px; }
-        .insight-action-text { font-size: 12px; font-weight: 500; color: var(--text-primary); }
-
-        /* ── VIEW SECTION ── */
-        .view-section { display: none; }
-        .view-section.active { display: block; animation: fadeIn 0.2s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-
-        /* Top spacing between sections */
-        .view-flex-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.25rem; }
-
-        /* Footer */
-        .site-footer {
-            background: white; border-top: 1px solid var(--border);
-            padding: 1.25rem 2rem; margin-top: auto;
-            text-align: center; font-size: 11px; color: var(--text-muted);
-        }
-
-        /* Sortable header hint */
-        .sortable { cursor: pointer; user-select: none; }
-        .sortable:hover { color: var(--accent-blue); }
-
-        .mono { font-family: 'DM Mono', monospace; }
+        /* MAIN */
+        #dashboard-main{max-width:1400px;margin:0 auto;padding:1.5rem 2rem;width:100%;display:none}
+        .filters-bar{background:#fff;border-radius:12px;border:1px solid var(--border);padding:1rem 1.25rem;margin-bottom:1.5rem;box-shadow:var(--shadow);display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-end}
+        .filter-group{display:flex;flex-direction:column;gap:4px;min-width:150px;flex:1}
+        .filter-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em}
+        .filter-select{border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text-primary);background:#fff;outline:none;transition:border-color .15s}
+        .filter-select:focus{border-color:var(--accent-blue)}
+        .filter-actions{display:flex;gap:8px;align-items:flex-end;padding-bottom:1px;flex-shrink:0}
+        .btn-ghost{padding:7px 14px;border-radius:7px;font-size:13px;font-weight:500;border:1px solid var(--border);background:#fff;cursor:pointer;color:var(--text-secondary);font-family:'DM Sans',sans-serif;transition:background .15s,color .15s}
+        .btn-ghost:hover{background:#f8fafc;color:var(--text-primary)}
+        .btn-link{padding:7px 14px;font-size:13px;font-weight:500;border:none;background:none;cursor:pointer;color:var(--accent-blue);font-family:'DM Sans',sans-serif}
+        .btn-link:hover{text-decoration:underline}
+        .section-header{margin-bottom:1.25rem}
+        .section-title{font-size:19px;font-weight:700;color:var(--text-primary);margin:0 0 4px;letter-spacing:-.02em}
+        .section-subtitle{font-size:13px;color:var(--text-secondary);margin:0}
+        .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+        @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+        .kpi-card{background:#fff;border-radius:12px;padding:1.25rem;border:1px solid var(--border);box-shadow:var(--shadow);position:relative;overflow:hidden}
+        .kpi-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;border-radius:12px 0 0 12px}
+        .kpi-card.blue::before{background:var(--accent-blue)}
+        .kpi-card.green::before{background:var(--accent-green)}
+        .kpi-card.purple::before{background:var(--accent-purple)}
+        .kpi-card.red::before{background:var(--accent-red)}
+        .kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted)}
+        .kpi-value{font-size:32px;font-weight:700;color:var(--text-primary);margin:6px 0 0;line-height:1;letter-spacing:-.03em}
+        .chart-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+        @media(max-width:900px){.chart-grid-2{grid-template-columns:1fr}}
+        .card{background:#fff;border-radius:12px;border:1px solid var(--border);box-shadow:var(--shadow);padding:1.25rem}
+        .card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin:0 0 1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
+        .chart-wrap{position:relative;width:100%;height:280px}
+        .table-wrap{overflow-x:auto}
+        table{width:100%;border-collapse:collapse;font-size:13px}
+        thead th{padding:10px 14px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);background:#f8fafc;border-bottom:1px solid var(--border);white-space:nowrap}
+        tbody td{padding:10px 14px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+        tbody tr:hover{background:#fafbfc}
+        tbody tr:last-child td{border-bottom:none}
+        .truncate-cell{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:99px;font-size:11px;font-weight:600}
+        .badge-gray{background:#f1f5f9;color:#475569}
+        .backlog-kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+        .backlog-kpi-card{background:#fff;border-radius:12px;padding:1.5rem;border:1px solid var(--border);box-shadow:var(--shadow);display:flex;align-items:center;gap:1rem}
+        .backlog-kpi-icon{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .backlog-kpi-icon.orange{background:#fff7ed;color:#ea580c}
+        .backlog-kpi-icon.red{background:#fef2f2;color:#dc2626}
+        .backlog-kpi-icon svg{width:24px;height:24px}
+        .backlog-kpi-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)}
+        .backlog-kpi-value{font-size:36px;font-weight:700;color:var(--text-primary);line-height:1;margin-top:4px;letter-spacing:-.03em}
+        .backlog-kpi-value.red-val{color:var(--accent-red)}
+        .btn-export{display:inline-flex;align-items:center;gap:7px;background:#059669;color:#fff;border:none;cursor:pointer;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;transition:background .15s}
+        .btn-export:hover{background:#047857}
+        .btn-export svg{width:15px;height:15px}
+        .areas-grid{display:grid;grid-template-columns:2fr 1fr;gap:1rem;margin-bottom:1.5rem}
+        @media(max-width:900px){.areas-grid{grid-template-columns:1fr}}
+        .req-list{list-style:none;margin:0;padding:0;max-height:320px;overflow-y:auto}
+        .req-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f5f9}
+        .req-item:last-child{border-bottom:none}
+        .req-name{font-size:13px;font-weight:500;color:var(--text-primary)}
+        .req-area{font-size:11px;color:var(--text-muted);margin-top:2px}
+        .req-count{background:#f1f5f9;color:#475569;font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px}
+        .roadmap-section-title{font-size:14px;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:8px;padding-bottom:.75rem;border-bottom:1px solid var(--border);margin-bottom:1rem}
+        .roadmap-section-title .dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+        .roadmap-ai-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem}
+        @media(max-width:900px){.roadmap-ai-grid{grid-template-columns:1fr}}
+        .roadmap-ai-card{background:#fff;border-radius:12px;border:1px solid var(--border);box-shadow:var(--shadow);padding:1.25rem;display:flex;flex-direction:column;transition:box-shadow .2s,transform .2s}
+        .roadmap-ai-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+        .roadmap-ai-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem;gap:8px}
+        .roadmap-ai-title{font-size:14px;font-weight:700;color:var(--text-primary);line-height:1.3}
+        .roadmap-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;white-space:nowrap;text-transform:uppercase;letter-spacing:.04em}
+        .roadmap-ai-desc{font-size:12px;color:var(--text-secondary);line-height:1.6;flex-grow:1;margin-bottom:1rem}
+        .roadmap-next{background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:auto}
+        .roadmap-next-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);display:block;margin-bottom:4px}
+        .roadmap-next-text{font-size:12px;font-weight:600;color:var(--text-primary)}
+        .roadmap-two-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem}
+        @media(max-width:900px){.roadmap-two-grid{grid-template-columns:1fr}}
+        .roadmap-info-card{background:#fff;border-radius:12px;border:1px solid var(--border);box-shadow:var(--shadow);padding:1.25rem}
+        .roadmap-info-item{display:flex;gap:10px;align-items:flex-start;padding:8px 0;font-size:13px;color:var(--text-secondary);border-bottom:1px solid #f1f5f9}
+        .roadmap-info-item:last-child{border-bottom:none}
+        .roadmap-info-item .bullet{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0}
+        .roadmap-timeline-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem}
+        @media(max-width:1100px){.roadmap-timeline-grid{grid-template-columns:repeat(3,1fr)}}
+        @media(max-width:700px){.roadmap-timeline-grid{grid-template-columns:repeat(2,1fr)}}
+        .roadmap-q-card{background:#fff;border-radius:12px;border:1px solid var(--border);box-shadow:var(--shadow);padding:1rem;border-top:3px solid #10b981}
+        .roadmap-q-card.backlog-q{border-top-color:#cbd5e1;background:#f8fafc}
+        .roadmap-q-title{font-size:13px;font-weight:700;text-align:center;color:var(--text-primary);padding-bottom:.6rem;border-bottom:1px solid var(--border);margin-bottom:.75rem}
+        .roadmap-q-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+        .roadmap-q-item{display:flex;gap:8px;align-items:flex-start;font-size:11px;line-height:1.4}
+        .q-dot{font-size:12px;margin-top:1px;flex-shrink:0;line-height:1}
+        .q-done{color:#059669}.q-active{color:var(--accent-blue)}.q-pending{color:#94a3b8}.q-backlog{color:#cbd5e1}
+        .q-text-done{color:var(--text-primary);font-weight:500}
+        .q-text-active{color:var(--text-primary);font-weight:600}
+        .q-text-pending{color:var(--text-secondary)}
+        .q-text-backlog{color:var(--text-muted);font-style:italic}
+        .insights-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        @media(max-width:900px){.insights-grid{grid-template-columns:1fr}}
+        .insight-card{background:#fff;border-radius:12px;border:1px solid var(--border);box-shadow:var(--shadow);padding:1.25rem;border-left:4px solid var(--accent-blue);display:flex;gap:1rem;transition:box-shadow .2s}
+        .insight-card:hover{box-shadow:var(--shadow-md)}
+        .insight-icon{width:44px;height:44px;border-radius:10px;background:var(--accent-blue-light);color:var(--accent-blue);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;flex-shrink:0}
+        .insight-title{font-size:14px;font-weight:700;color:var(--text-primary);margin:0 0 6px}
+        .insight-desc{font-size:12px;color:var(--text-secondary);margin:0 0 10px;line-height:1.6}
+        .insight-action-box{background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+        .insight-action-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent-blue);display:block;margin-bottom:4px}
+        .insight-action-text{font-size:12px;font-weight:500;color:var(--text-primary)}
+        .view-section{display:none}
+        .view-section.active{display:block;animation:fadeIn .2s ease}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+        .view-flex-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.25rem}
+        .site-footer{background:#fff;border-top:1px solid var(--border);padding:1.25rem 2rem;margin-top:auto;text-align:center;font-size:11px;color:var(--text-muted)}
+        .sortable{cursor:pointer;user-select:none}
+        .sortable:hover{color:var(--accent-blue)}
+        .mono{font-family:'DM Mono',monospace}
     </style>
 </head>
 <body>
 
-    <!-- TOP HEADER -->
-    <header class="top-header">
-        <div class="header-inner">
-            <div class="brand">
-                <div class="brand-icon">B</div>
-                <span class="brand-title">Gestão de Backoffice &amp; Suporte</span>
-            </div>
-            <div style="display:flex; align-items:center; gap:12px;">
-                <div class="header-meta" id="last-update" style="display:none;"></div>
-                <button id="btn-refresh-github" onclick="autoLoadFromGitHub()" style="display:none; align-items:center; gap:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:#94a3b8; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:500; cursor:pointer; font-family:'DM Sans',sans-serif; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.14)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    Atualizar
-                </button>
-            </div>
+<header class="top-header">
+    <div class="header-inner">
+        <div class="brand">
+            <div class="brand-icon">B</div>
+            <span class="brand-title">Gestão de Backoffice &amp; Suporte</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <span class="header-meta" id="last-update"></span>
+            <button class="btn-refresh" id="btn-refresh" onclick="carregarDoGitHub()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                Atualizar
+            </button>
+        </div>
+    </div>
+    <nav class="tabs-nav" id="top-nav" style="display:none">
+        <div class="tabs-inner">
+            <button class="tab-btn active" onclick="switchTab('overview')" id="tab-overview">Visão Geral</button>
+            <button class="tab-btn" onclick="switchTab('productivity')" id="tab-productivity">Produtividade &amp; SLA</button>
+            <button class="tab-btn" onclick="switchTab('backlog')" id="tab-backlog">Backlog &amp; Risco</button>
+            <button class="tab-btn" onclick="switchTab('areas')" id="tab-areas">Análise por Área</button>
+            <button class="tab-btn" onclick="switchTab('roadmap')" id="tab-roadmap">Roadmap &amp; Projetos</button>
+            <button class="tab-btn" onclick="switchTab('actions')" id="tab-actions">Insights &amp; Ações</button>
+        </div>
+    </nav>
+</header>
+
+<!-- TELA DE ENTRADA -->
+<div id="upload-screen">
+    <div class="upload-card">
+        <div class="upload-icon-wrap">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+        </div>
+        <h2 class="upload-title">Gestão de Backoffice &amp; Suporte</h2>
+        <p class="upload-desc">Buscando <strong>dados.csv</strong> automaticamente no GitHub. Se não encontrado, carregue manualmente.</p>
+
+        <div class="status-box" id="status-box">
+            <div class="spinner"></div>
+            <span id="status-txt" style="color:var(--accent-blue)">Conectando ao GitHub...</span>
         </div>
 
-        <!-- TABS (hidden until data loaded) -->
-        <nav class="tabs-nav" id="top-nav" style="display:none;">
-            <div class="tabs-inner">
-                <button class="tab-btn active" onclick="switchTab('overview')" id="tab-overview">Visão Geral</button>
-                <button class="tab-btn" onclick="switchTab('productivity')" id="tab-productivity">Produtividade &amp; SLA</button>
-                <button class="tab-btn" onclick="switchTab('backlog')" id="tab-backlog">Backlog &amp; Risco</button>
-                <button class="tab-btn" onclick="switchTab('areas')" id="tab-areas">Análise por Área</button>
-                <button class="tab-btn" onclick="switchTab('roadmap')" id="tab-roadmap">Roadmap &amp; Projetos</button>
-                <button class="tab-btn" onclick="switchTab('actions')" id="tab-actions">Insights &amp; Ações</button>
-            </div>
-        </nav>
-    </header>
+        <div class="upload-manual" id="upload-manual">
+            <p>Arquivo não encontrado no GitHub. Carregue manualmente:</p>
+            <label class="upload-btn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                Selecionar Planilha (.csv ou .xlsx)
+                <input id="file-upload" type="file" style="display:none" accept=".csv,.xlsx,.xls">
+            </label>
+        </div>
 
-    <!-- ════════════════════════════════════ UPLOAD SCREEN ════════════════════════════════════ -->
-    <div id="upload-screen">
-        <div class="upload-card">
-            <div class="upload-icon-wrap">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                </svg>
-            </div>
-            <h2 class="upload-title">Gestão de Backoffice &amp; Suporte</h2>
-            <p class="upload-desc">O sistema busca automaticamente o arquivo <strong>dados.csv</strong> no GitHub. Caso não encontre, o upload manual fica disponível abaixo.</p>
+        <div class="upload-note" style="margin-top:1.5rem">
+            <span></span> Processamento 100% local
+        </div>
+    </div>
+</div>
 
-            <!-- Status da busca no GitHub -->
-            <div id="github-status" style="display:none; align-items:center; justify-content:center; gap:8px; font-size:13px; font-weight:600; color:#2563eb; margin-bottom:1.25rem;">
-                <div class="spinner"></div> Buscando dados.csv no GitHub...
-            </div>
+<!-- DASHBOARD -->
+<main id="dashboard-main">
+    <section id="global-filters" class="filters-bar">
+        <div class="filter-group">
+            <span class="filter-label">Área / Grupo</span>
+            <select id="filter-area" class="filter-select" onchange="applyFilters()"><option value="all">Todas</option></select>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Responsável / Agente</span>
+            <select id="filter-resp" class="filter-select" onchange="applyFilters()"><option value="all">Todos</option></select>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Prioridade</span>
+            <select id="filter-prio" class="filter-select" onchange="applyFilters()"><option value="all">Todas</option></select>
+        </div>
+        <div class="filter-group">
+            <span class="filter-label">Status</span>
+            <select id="filter-status" class="filter-select" onchange="applyFilters()"><option value="all">Todos</option></select>
+        </div>
+        <div class="filter-actions">
+            <button class="btn-ghost" onclick="location.reload()">Trocar Arquivo</button>
+            <button class="btn-link" onclick="resetFilters()">Limpar Filtros</button>
+        </div>
+    </section>
 
-            <!-- Seção manual — aparece apenas se GitHub falhar -->
-            <div id="manual-upload-section" style="display:none;">
-                <div style="border-top:1px solid var(--border); padding-top:1.25rem; margin-top:0.25rem;">
-                    <p style="font-size:12px; color:var(--text-muted); margin:0 0 1rem;">ou carregue manualmente:</p>
-                    <label for="file-upload" class="upload-btn">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:18px;height:18px;">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
-                        </svg>
-                        Selecionar Planilha (.csv, .xlsx)
-                        <input id="file-upload" type="file" style="display:none;" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
-                    </label>
-                </div>
-            </div>
-
-            <div id="loading-msg" style="display:none; margin-top:1.2rem; font-size:13px; font-weight:600; color:#2563eb; align-items:center; justify-content:center; gap:8px;">
-                <div class="spinner"></div> Processando dados e gerando o dashboard...
-            </div>
-
-            <div class="upload-note" style="margin-top:1.5rem;">
-                <span></span> Processamento 100% local — seus dados não são enviados a nenhum servidor
-            </div>
+    <!-- VISÃO GERAL -->
+    <div id="view-overview" class="view-section active">
+        <div class="section-header"><h2 class="section-title">Visão Executiva</h2><p class="section-subtitle">Resumo consolidado. SLA e tempos consideram apenas Dias Úteis.</p></div>
+        <div class="kpi-grid">
+            <div class="kpi-card blue"><div class="kpi-label">Total de Chamados</div><div class="kpi-value" id="kpi-total">0</div></div>
+            <div class="kpi-card green"><div class="kpi-label">% Concluídos</div><div class="kpi-value" id="kpi-concluded-pct">0%</div></div>
+            <div class="kpi-card purple"><div class="kpi-label">SLA Médio (Dias Úteis)</div><div class="kpi-value" id="kpi-avg-time">0.0</div></div>
+            <div class="kpi-card red"><div class="kpi-label">% Urgentes / High</div><div class="kpi-value" id="kpi-urgent-pct">0%</div></div>
+        </div>
+        <div class="chart-grid-2">
+            <div class="card"><div class="card-title">Evolução de Abertura (Mês/Ano)</div><div class="chart-wrap"><canvas id="chart-trend"></canvas></div></div>
+            <div class="card"><div class="card-title">Demandas por Área / Grupo</div><div class="chart-wrap"><canvas id="chart-area-volume"></canvas></div></div>
+        </div>
+        <div class="card">
+            <div class="card-title">Ranking de Agentes — Top 5 por Volume</div>
+            <div class="table-wrap"><table><thead><tr><th>Agente</th><th>Total</th><th style="color:#059669">Concluídos</th><th style="color:#d97706">Em Aberto</th><th>Ciclo (Dias Úteis)</th></tr></thead><tbody id="table-top-resp"></tbody></table></div>
         </div>
     </div>
 
-    <!-- ════════════════════════════════════ MAIN DASHBOARD ════════════════════════════════════ -->
-    <main id="dashboard-main" style="display:none;">
+    <!-- PRODUTIVIDADE -->
+    <div id="view-productivity" class="view-section">
+        <div class="section-header"><h2 class="section-title">Produtividade &amp; Tempos de Atendimento</h2><p class="section-subtitle">Expedientes de 10h diárias, ignorando fins de semana.</p></div>
+        <div class="chart-grid-2">
+            <div class="card"><div class="card-title">SLA Médio por Agente (Dias Úteis)</div><div class="chart-wrap"><canvas id="chart-sla-resp"></canvas></div></div>
+            <div class="card"><div class="card-title">SLA Médio por Área / Grupo (Dias Úteis)</div><div class="chart-wrap"><canvas id="chart-sla-area"></canvas></div></div>
+        </div>
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)">
+                <div class="card-title" style="margin:0;border:none;padding:0">Detalhamento — Chamados Concluídos</div>
+                <span class="sortable" style="font-size:12px;color:var(--text-muted)" onclick="sortTable('tempoCiclo')">Ordenar por Tempo ↕</span>
+            </div>
+            <div class="table-wrap" style="max-height:480px;overflow-y:auto"><table><thead><tr><th style="width:30%">Assunto</th><th>Área</th><th>Agente</th><th>Prioridade</th><th>Abertura</th><th class="sortable" onclick="sortTable('tempoCiclo')">Ciclo (Dias Úteis) ↕</th></tr></thead><tbody id="table-details"></tbody></table></div>
+        </div>
+    </div>
 
-        <!-- GLOBAL FILTERS -->
-        <section id="global-filters" class="filters-bar">
-            <div class="filter-group">
-                <span class="filter-label">Área / Grupo</span>
-                <select id="filter-area" class="filter-select" onchange="applyFilters()">
-                    <option value="all">Todas</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <span class="filter-label">Responsável / Agente</span>
-                <select id="filter-resp" class="filter-select" onchange="applyFilters()">
-                    <option value="all">Todos</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <span class="filter-label">Prioridade</span>
-                <select id="filter-prio" class="filter-select" onchange="applyFilters()">
-                    <option value="all">Todas</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <span class="filter-label">Status</span>
-                <select id="filter-status" class="filter-select" onchange="applyFilters()">
-                    <option value="all">Todos</option>
-                </select>
-            </div>
-            <div class="filter-actions">
-                <button class="btn-ghost" onclick="location.reload()">Trocar Arquivo</button>
-                <button class="btn-link" onclick="resetFilters()">Limpar Filtros</button>
-            </div>
-        </section>
+    <!-- BACKLOG -->
+    <div id="view-backlog" class="view-section">
+        <div class="view-flex-header">
+            <div><h2 class="section-title">Backlog &amp; Gestão de Risco</h2><p class="section-subtitle">Fila de entrada. Idade das tarefas descontando fins de semana.</p></div>
+            <button class="btn-export" onclick="exportBacklogToCSV()"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>Exportar Backlog (CSV)</button>
+        </div>
+        <div class="backlog-kpi-grid">
+            <div class="backlog-kpi-card"><div class="backlog-kpi-icon orange"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div><div><div class="backlog-kpi-label">Backlog Total</div><div class="backlog-kpi-value" id="kpi-backlog-total">0</div></div></div>
+            <div class="backlog-kpi-card"><div class="backlog-kpi-icon red"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div><div><div class="backlog-kpi-label">Backlog Alta Criticidade</div><div class="backlog-kpi-value red-val" id="kpi-backlog-urgent">0</div></div></div>
+        </div>
+        <div class="chart-grid-2">
+            <div class="card"><div class="card-title">Gargalo: Demandas em Aberto por Agente</div><div class="chart-wrap"><canvas id="chart-backlog-resp"></canvas></div></div>
+            <div class="card"><div class="card-title">Risco: Backlog por Prioridade</div><div class="chart-wrap"><canvas id="chart-backlog-prio"></canvas></div></div>
+        </div>
+        <div class="card" style="border-top:3px solid #fca5a5">
+            <div class="card-title" style="color:#991b1b">Ação Imediata — Top 20 Mais Antigas no Backlog</div>
+            <div class="table-wrap"><table><thead style="background:#fef2f2"><tr><th style="color:#991b1b">Assunto</th><th style="color:#991b1b">Agente</th><th style="color:#991b1b">Dias Úteis Aberto</th><th style="color:#991b1b">Prioridade</th><th style="color:#991b1b">Status</th></tr></thead><tbody id="table-aged"></tbody></table></div>
+        </div>
+    </div>
 
-        <!-- ── VIEW 1: OVERVIEW ── -->
-        <div id="view-overview" class="view-section active">
-            <div class="section-header">
-                <h2 class="section-title">Visão Executiva</h2>
-                <p class="section-subtitle">Resumo consolidado. SLA e tempos consideram apenas Dias Úteis.</p>
-            </div>
+    <!-- ÁREAS -->
+    <div id="view-areas" class="view-section">
+        <div class="section-header"><h2 class="section-title">Análise por Área / Solicitante</h2><p class="section-subtitle">Leitura com 100% de fidelidade conforme coluna Área/Grupo da planilha.</p></div>
+        <div class="areas-grid">
+            <div class="card"><div class="card-title">Volume Total Demandado (Por Área)</div><div class="chart-wrap"><canvas id="chart-area-stack"></canvas></div></div>
+            <div class="card"><div class="card-title">Top Solicitantes</div><ul class="req-list" id="list-requesters"></ul></div>
+        </div>
+    </div>
 
-            <div class="kpi-grid">
-                <div class="kpi-card blue">
-                    <div class="kpi-label">Total de Chamados</div>
-                    <div class="kpi-value" id="kpi-total">0</div>
-                </div>
-                <div class="kpi-card green">
-                    <div class="kpi-label">% Concluídos</div>
-                    <div class="kpi-value" id="kpi-concluded-pct">0%</div>
-                </div>
-                <div class="kpi-card purple">
-                    <div class="kpi-label">SLA Médio (Dias Úteis)</div>
-                    <div class="kpi-value" id="kpi-avg-time">0.0</div>
-                </div>
-                <div class="kpi-card red">
-                    <div class="kpi-label">% Urgentes / High</div>
-                    <div class="kpi-value" id="kpi-urgent-pct">0%</div>
-                </div>
+    <!-- ROADMAP -->
+    <div id="view-roadmap" class="view-section">
+        <div class="section-header"><h2 class="section-title">Roadmap &amp; Projetos (Backoffice)</h2><p class="section-subtitle">Acompanhamento centralizado de entregas, IA e governança.</p></div>
+        <div class="roadmap-section-title"><span class="dot" style="background:var(--accent-blue)"></span>Destaques de Inteligência Artificial</div>
+        <div class="roadmap-ai-grid" id="roadmap-ai-container"></div>
+        <div class="roadmap-two-grid">
+            <div class="roadmap-info-card" style="border-left:4px solid #f97316">
+                <div class="roadmap-section-title" style="margin-bottom:1rem"><span class="dot" style="background:#f97316"></span>Estrutura &amp; Transição da Equipe</div>
+                <div id="roadmap-team-container"></div>
             </div>
-
-            <div class="chart-grid-2">
-                <div class="card">
-                    <div class="card-title">Evolução de Abertura (Mês/Ano)</div>
-                    <div class="chart-wrap"><canvas id="chart-trend"></canvas></div>
-                </div>
-                <div class="card">
-                    <div class="card-title">Demandas por Área / Grupo</div>
-                    <div class="chart-wrap"><canvas id="chart-area-volume"></canvas></div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Ranking de Agentes — Top 5 por Volume</div>
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Agente</th>
-                                <th>Total</th>
-                                <th style="color:#059669">Concluídos</th>
-                                <th style="color:#d97706">Em Aberto</th>
-                                <th>Ciclo (Dias Úteis)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-top-resp"></tbody>
-                    </table>
-                </div>
+            <div class="roadmap-info-card" style="border-left:4px solid #6366f1">
+                <div class="roadmap-section-title" style="margin-bottom:1rem"><span class="dot" style="background:#6366f1"></span>Governança de Projetos 2026</div>
+                <div id="roadmap-gov-container"></div>
             </div>
         </div>
+        <div class="roadmap-section-title"><span class="dot" style="background:#10b981"></span>Roadmap Oficial de Entregas 2026</div>
+        <div class="roadmap-timeline-grid" id="roadmap-timeline-container"></div>
+    </div>
 
-        <!-- ── VIEW 2: PRODUCTIVITY ── -->
-        <div id="view-productivity" class="view-section">
-            <div class="section-header">
-                <h2 class="section-title">Produtividade &amp; Tempos de Atendimento</h2>
-                <p class="section-subtitle">Expedientes de 10h diárias, ignorando fins de semana.</p>
-            </div>
+    <!-- INSIGHTS -->
+    <div id="view-actions" class="view-section">
+        <div class="section-header"><h2 class="section-title">Inteligência e Planos de Ação</h2><p class="section-subtitle">O sistema avalia padrões e estabelece <strong>Metas Dinâmicas (Baselines)</strong> para o time em Dias Úteis (10h/dia).</p></div>
+        <div class="insights-grid" id="action-plans-container"></div>
+    </div>
+</main>
 
-            <div class="chart-grid-2">
-                <div class="card">
-                    <div class="card-title">SLA Médio por Agente (Dias Úteis)</div>
-                    <div class="chart-wrap"><canvas id="chart-sla-resp"></canvas></div>
-                </div>
-                <div class="card">
-                    <div class="card-title">SLA Médio por Área / Grupo (Dias Úteis)</div>
-                    <div class="chart-wrap"><canvas id="chart-sla-area"></canvas></div>
-                </div>
-            </div>
+<footer class="site-footer">Dashboard Gerencial de Backoffice &amp; Projetos Integrados</footer>
 
-            <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; padding-bottom:0.75rem; border-bottom:1px solid var(--border);">
-                    <div class="card-title" style="margin:0; border:none; padding:0;">Detalhamento — Chamados Concluídos</div>
-                    <span class="sortable" style="font-size:12px; color:var(--text-muted);" onclick="sortTable('tempoCiclo')">Ordenar por Tempo ↕</span>
-                </div>
-                <div class="table-wrap" style="max-height:480px; overflow-y:auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="width:30%">Assunto</th>
-                                <th>Área</th>
-                                <th>Agente</th>
-                                <th>Prioridade</th>
-                                <th>Abertura</th>
-                                <th class="sortable" onclick="sortTable('tempoCiclo')">Ciclo (Dias Úteis) ↕</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-details"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+<script>
+Chart.register(ChartDataLabels);
 
-        <!-- ── VIEW 3: BACKLOG ── -->
-        <div id="view-backlog" class="view-section">
-            <div class="view-flex-header">
-                <div>
-                    <h2 class="section-title">Backlog &amp; Gestão de Risco</h2>
-                    <p class="section-subtitle">Fila de entrada. Idade das tarefas descontando fins de semana.</p>
-                </div>
-                <button class="btn-export" onclick="exportBacklogToCSV()">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                    </svg>
-                    Exportar Backlog (CSV)
-                </button>
-            </div>
+// ============================================================
+// CONFIGURAÇÃO DO ROADMAP
+// ============================================================
+const configRoadmap = {
+    destaquesIA: [
+        { nome:"Evolução da IA Rose", status:"Em Andamento", descricao:"Publicação da versão 6 com integração da base interna + Portal Ajuda. Expansão da capacidade de consulta para toda a base. Priorização da documentação do CR Comercial. Uso contínuo pela equipe para gerar feedback.", proximoPasso:"Entrega da documentação do CR Comercial (24/04)", corBadge:"background:#dbeafe;color:#1e40af;" },
+        { nome:"IA Camarguinho", status:"Entregue / Funcional", descricao:"Lançamento realizado no Teams e SharePoint. Correção de problema de créditos da Microsoft resolvida. Ferramenta já disponível e funcional.", proximoPasso:"Evolução contínua da base e melhoria da ferramenta.", corBadge:"background:#d1fae5;color:#065f46;" },
+        { nome:"IA Criação de Artigos (Camis)", status:"Evolução Ativa", descricao:"Publicação da versão 1.1 concluída. IA já consumindo base do Portal Ajuda para geração automática de artigos.", proximoPasso:"Evolução da criação de artigos e expansão em Q2.", corBadge:"background:#ede9fe;color:#5b21b6;" }
+    ],
+    equipeEPlanejamento: [
+        "Com a entrada da <strong>Mirella</strong>, a <strong>Samantha</strong> está realizando o repasse dos clientes VIPs.",
+        "Assim que a Mirella assumir integralmente os VIPs, o próximo passo será focar fortemente nos indicadores do suporte.",
+        "Início do planejamento e execução dos <strong>Projetos de BI para 2026</strong>."
+    ],
+    governanca: [
+        "Realização da Governança dos Projetos do Suporte para 2026, diretamente atrelados à <strong>Meta Bônus</strong>.",
+        "Reuniões quinzenais de acompanhamento e status report.",
+        "Apoio transversal quanto ao mapeamento de riscos e impedimentos dos projetos."
+    ],
+    roadmapQuarters: {
+        "Q1": [ {nome:"IA Camarguinho (Lançamento Teams/Sharepoint)",status:"done"},{nome:"Sienge na Prática (3 Webinars)",status:"done"} ],
+        "Q2": [ {nome:"Evolução IA Rose (CR/COM)",status:"active"},{nome:"IA Criação de Artigos (Lançamento Engsup)",status:"active"},{nome:"Implantação GC",status:"pending"},{nome:"Sienge na Prática (3 Webinars)",status:"pending"} ],
+        "Q3": [ {nome:"Evolução IA Rose (CP/CTB)",status:"pending"},{nome:"Planos de Suporte (Lançamento 1ª etapa Construsummit)",status:"pending"},{nome:"Intervenção de Canais",status:"pending"},{nome:"Confecção de Layout CR (Possibilidade de antecipar do Q4)",status:"pending"},{nome:"Sienge na Prática (3 Webinars)",status:"pending"} ],
+        "Q4": [ {nome:"Evolução IA Rose (Infra/Cross/Capital)",status:"pending"},{nome:"Implantação Nexxera",status:"pending"},{nome:"Seniorização N1s",status:"pending"},{nome:"Planos de Suporte (Etapa final)",status:"pending"},{nome:"Fluxo Sugestão de Melhoria",status:"pending"},{nome:"Confecção de Layout (CTB)",status:"pending"},{nome:"Confecção de Layout (CR)",status:"pending"},{nome:"Sienge na Prática (3 Webinars)",status:"pending"} ],
+        "Backlog / Sem Data": [ {nome:"Migração centro de custo (novo – fora do roadmap)",status:"backlog"},{nome:"IA Abertura de Chamados (Fora do Horário Comercial)",status:"backlog"} ]
+    }
+};
 
-            <div class="backlog-kpi-grid">
-                <div class="backlog-kpi-card">
-                    <div class="backlog-kpi-icon orange">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <div class="backlog-kpi-label">Backlog Total</div>
-                        <div class="backlog-kpi-value" id="kpi-backlog-total">0</div>
-                    </div>
-                </div>
-                <div class="backlog-kpi-card">
-                    <div class="backlog-kpi-icon red">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <div class="backlog-kpi-label">Backlog Alta Criticidade</div>
-                        <div class="backlog-kpi-value red-val" id="kpi-backlog-urgent">0</div>
-                    </div>
-                </div>
-            </div>
+function renderRoadmapTab() {
+    document.getElementById('roadmap-ai-container').innerHTML = configRoadmap.destaquesIA.map(ia =>
+        `<div class="roadmap-ai-card"><div class="roadmap-ai-header"><div class="roadmap-ai-title">${ia.nome}</div><span class="roadmap-badge" style="${ia.corBadge}">${ia.status}</span></div><div class="roadmap-ai-desc">${ia.descricao}</div><div class="roadmap-next"><span class="roadmap-next-label">Próximo Passo / Atual</span><span class="roadmap-next-text">${ia.proximoPasso}</span></div></div>`
+    ).join('');
+    document.getElementById('roadmap-team-container').innerHTML = configRoadmap.equipeEPlanejamento.map(t =>
+        `<div class="roadmap-info-item"><span class="bullet" style="background:#f97316"></span><span>${t}</span></div>`).join('');
+    document.getElementById('roadmap-gov-container').innerHTML = configRoadmap.governanca.map(t =>
+        `<div class="roadmap-info-item"><span class="bullet" style="background:#6366f1"></span><span>${t}</span></div>`).join('');
+    const ic={done:"●",active:"●",pending:"○",backlog:"○"};
+    const cc={done:"q-done",active:"q-active",pending:"q-pending",backlog:"q-backlog"};
+    const tc={done:"q-text-done",active:"q-text-active",pending:"q-text-pending",backlog:"q-text-backlog"};
+    document.getElementById('roadmap-timeline-container').innerHTML = Object.entries(configRoadmap.roadmapQuarters).map(([q,items]) =>
+        `<div class="roadmap-q-card ${q.includes('Sem Data')?'backlog-q':''}"><div class="roadmap-q-title">${q}</div><ul class="roadmap-q-list">${items.map(p=>`<li class="roadmap-q-item"><span class="q-dot ${cc[p.status]}">${ic[p.status]}</span><span class="${tc[p.status]}">${p.nome}</span></li>`).join('')}</ul></div>`
+    ).join('');
+}
 
-            <div class="chart-grid-2">
-                <div class="card">
-                    <div class="card-title">Gargalo: Demandas em Aberto por Agente</div>
-                    <div class="chart-wrap"><canvas id="chart-backlog-resp"></canvas></div>
-                </div>
-                <div class="card">
-                    <div class="card-title">Risco: Backlog por Prioridade</div>
-                    <div class="chart-wrap"><canvas id="chart-backlog-prio"></canvas></div>
-                </div>
-            </div>
+// ============================================================
+// CARREGAMENTO DO GITHUB
+// ============================================================
+const GH_RAW  = 'https://raw.githubusercontent.com/vrluz/dashboard-backoffice/main/dados.csv';
+const GH_API  = 'https://api.github.com/repos/vrluz/dashboard-backoffice/contents/dados.csv?ref=main';
 
-            <div class="card" style="border-top: 3px solid #fca5a5;">
-                <div class="card-title" style="color:#991b1b;">Ação Imediata — Top 20 Mais Antigas no Backlog</div>
-                <div class="table-wrap">
-                    <table>
-                        <thead style="background:#fef2f2;">
-                            <tr>
-                                <th style="color:#991b1b;">Assunto</th>
-                                <th style="color:#991b1b;">Agente</th>
-                                <th style="color:#991b1b;">Dias Úteis Aberto</th>
-                                <th style="color:#991b1b;">Prioridade</th>
-                                <th style="color:#991b1b;">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-aged"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+let rawData = [];
+let currentFilter = {area:'all',resp:'all',prio:'all',status:'all'};
+let charts = {};
 
-        <!-- ── VIEW 4: AREAS ── -->
-        <div id="view-areas" class="view-section">
-            <div class="section-header">
-                <h2 class="section-title">Análise por Área / Solicitante</h2>
-                <p class="section-subtitle">Leitura com 100% de fidelidade conforme coluna Área/Grupo da planilha.</p>
-            </div>
-            <div class="areas-grid">
-                <div class="card">
-                    <div class="card-title">Volume Total Demandado (Por Área)</div>
-                    <div class="chart-wrap"><canvas id="chart-area-stack"></canvas></div>
-                </div>
-                <div class="card">
-                    <div class="card-title">Top Solicitantes</div>
-                    <ul class="req-list" id="list-requesters"></ul>
-                </div>
-            </div>
-        </div>
+function setStatus(html, cor) {
+    const box = document.getElementById('status-box');
+    const txt = document.getElementById('status-txt');
+    // remove spinner se existir
+    const sp = box.querySelector('.spinner');
+    if (sp) sp.remove();
+    txt.innerHTML = html;
+    txt.style.color = cor || 'var(--text-secondary)';
+}
 
-        <!-- ── VIEW 5: ROADMAP ── -->
-        <div id="view-roadmap" class="view-section">
-            <div class="section-header">
-                <h2 class="section-title">Roadmap &amp; Projetos (Backoffice)</h2>
-                <p class="section-subtitle">Acompanhamento centralizado de entregas, IA e governança. Para editar, atualize o objeto <span class="mono" style="font-size:11px;">configRoadmap</span> no código-fonte.</p>
-            </div>
+async function carregarDoGitHub() {
+    // se já estiver no dashboard, mostra estado no botão
+    const noDash = document.getElementById('dashboard-main').style.display === 'block';
+    const btn = document.getElementById('btn-refresh');
+    if (noDash) {
+        btn.disabled = true;
+        btn.innerHTML = '<div class="spinner" style="border-color:#334155;border-top-color:#94a3b8;width:12px;height:12px;"></div>&nbsp;Atualizando...';
+    } else {
+        // restaura spinner na tela de upload
+        const box = document.getElementById('status-box');
+        box.innerHTML = '<div class="spinner"></div><span id="status-txt" style="color:var(--accent-blue)">Conectando ao GitHub...</span>';
+        document.getElementById('upload-manual').style.display = 'none';
+    }
 
-            <div class="roadmap-section-title">
-                <span class="dot" style="background:var(--accent-blue);"></span>
-                Destaques de Inteligência Artificial
-            </div>
-            <div class="roadmap-ai-grid" id="roadmap-ai-container"></div>
+    let csvText = null;
 
-            <div class="roadmap-two-grid">
-                <div class="roadmap-info-card" style="border-left: 4px solid #f97316;">
-                    <div class="roadmap-section-title" style="margin-bottom:1rem;">
-                        <span class="dot" style="background:#f97316;"></span>
-                        Estrutura &amp; Transição da Equipe
-                    </div>
-                    <div id="roadmap-team-container"></div>
-                </div>
-                <div class="roadmap-info-card" style="border-left: 4px solid #6366f1;">
-                    <div class="roadmap-section-title" style="margin-bottom:1rem;">
-                        <span class="dot" style="background:#6366f1;"></span>
-                        Governança de Projetos 2026
-                    </div>
-                    <div id="roadmap-gov-container"></div>
-                </div>
-            </div>
+    // 1) Tenta raw (funciona quando GitHub Pages e raw estão no mesmo contexto CORS)
+    try {
+        const r = await fetch(GH_RAW, {cache:'no-cache'});
+        if (r.ok) { const t = await r.text(); if (t && t.trim()) csvText = t; }
+    } catch(_) {}
 
-            <div class="roadmap-section-title">
-                <span class="dot" style="background:#10b981;"></span>
-                Roadmap Oficial de Entregas 2026
-            </div>
-            <div class="roadmap-timeline-grid" id="roadmap-timeline-container"></div>
-        </div>
-
-        <!-- ── VIEW 6: INSIGHTS ── -->
-        <div id="view-actions" class="view-section">
-            <div class="section-header">
-                <h2 class="section-title">Inteligência e Planos de Ação</h2>
-                <p class="section-subtitle">O sistema avalia padrões e estabelece <strong>Metas Dinâmicas (Baselines)</strong> para o time em Dias Úteis (10h/dia).</p>
-            </div>
-            <div class="insights-grid" id="action-plans-container"></div>
-        </div>
-
-    </main>
-
-    <footer class="site-footer">
-        Dashboard Gerencial de Backoffice &amp; Projetos Integrados
-    </footer>
-
-    <!-- ════════════════════════════════════ JAVASCRIPT ════════════════════════════════════ -->
-    <script>
-        Chart.register(ChartDataLabels);
-
-        // ============================================================================
-        // CONFIGURAÇÃO DO ROADMAP
-        // ============================================================================
-        const configRoadmap = {
-            destaquesIA: [
-                {
-                    nome: "Evolução da IA Rose",
-                    status: "Em Andamento",
-                    descricao: "Publicação da versão 6 com integração da base interna + Portal Ajuda. Expansão da capacidade de consulta para toda a base. Priorização da documentação do CR Comercial. Uso contínuo pela equipe para gerar feedback.",
-                    proximoPasso: "Entrega da documentação do CR Comercial (24/04)",
-                    corBadge: "background:#dbeafe; color:#1e40af;"
-                },
-                {
-                    nome: "IA Camarguinho",
-                    status: "Entregue / Funcional",
-                    descricao: "Lançamento realizado no Teams e SharePoint. Correção de problema de créditos da Microsoft resolvida. Ferramenta já disponível e funcional.",
-                    proximoPasso: "Evolução contínua da base e melhoria da ferramenta.",
-                    corBadge: "background:#d1fae5; color:#065f46;"
-                },
-                {
-                    nome: "IA Criação de Artigos (Camis)",
-                    status: "Evolução Ativa",
-                    descricao: "Publicação da versão 1.1 concluída. IA já consumindo base do Portal Ajuda para geração automática de artigos.",
-                    proximoPasso: "Evolução da criação de artigos e expansão em Q2.",
-                    corBadge: "background:#ede9fe; color:#5b21b6;"
+    // 2) Fallback: GitHub Contents API (CORS sempre liberado, retorna base64)
+    if (!csvText) {
+        try {
+            const r = await fetch(GH_API, {headers:{'Accept':'application/vnd.github.v3+json'}});
+            if (r.ok) {
+                const j = await r.json();
+                if (j.content) {
+                    const bin = atob(j.content.replace(/\n/g,''));
+                    const bytes = new Uint8Array(bin.length);
+                    for (let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+                    csvText = new TextDecoder('utf-8').decode(bytes);
                 }
-            ],
-            equipeEPlanejamento: [
-                "Com a entrada da <strong>Mirella</strong>, a <strong>Samantha</strong> está realizando o repasse dos clientes VIPs.",
-                "Assim que a Mirella assumir integralmente os VIPs, o próximo passo será focar fortemente nos indicadores do suporte.",
-                "Início do planejamento e execução dos <strong>Projetos de BI para 2026</strong>."
-            ],
-            governanca: [
-                "Realização da Governança dos Projetos do Suporte para 2026, diretamente atrelados à <strong>Meta Bônus</strong>.",
-                "Reuniões quinzenais de acompanhamento e status report.",
-                "Apoio transversal quanto ao mapeamento de riscos e impedimentos dos projetos."
-            ],
-            roadmapQuarters: {
-                "Q1": [
-                    { nome: "IA Camarguinho (Lançamento Teams/Sharepoint)", status: "done" },
-                    { nome: "Sienge na Prática (3 Webinars)", status: "done" }
-                ],
-                "Q2": [
-                    { nome: "Evolução IA Rose (CR/COM)", status: "active" },
-                    { nome: "IA Criação de Artigos (Lançamento Engsup)", status: "active" },
-                    { nome: "Implantação GC", status: "pending" },
-                    { nome: "Sienge na Prática (3 Webinars)", status: "pending" }
-                ],
-                "Q3": [
-                    { nome: "Evolução IA Rose (CP/CTB)", status: "pending" },
-                    { nome: "Planos de Suporte (Lançamento 1ª etapa Construsummit)", status: "pending" },
-                    { nome: "Intervenção de Canais", status: "pending" },
-                    { nome: "Confecção de Layout CR (Possibilidade de antecipar do Q4)", status: "pending" },
-                    { nome: "Sienge na Prática (3 Webinars)", status: "pending" }
-                ],
-                "Q4": [
-                    { nome: "Evolução IA Rose (Infra/Cross/Capital)", status: "pending" },
-                    { nome: "Implantação Nexxera", status: "pending" },
-                    { nome: "Seniorização N1s", status: "pending" },
-                    { nome: "Planos de Suporte (Etapa final)", status: "pending" },
-                    { nome: "Fluxo Sugestão de Melhoria", status: "pending" },
-                    { nome: "Confecção de Layout (CTB)", status: "pending" },
-                    { nome: "Confecção de Layout (CR)", status: "pending" },
-                    { nome: "Sienge na Prática (3 Webinars)", status: "pending" }
-                ],
-                "Backlog / Sem Data": [
-                    { nome: "Migração centro de custo (novo – fora do roadmap)", status: "backlog" },
-                    { nome: "IA Abertura de Chamados (Fora do Horário Comercial)", status: "backlog" }
-                ]
             }
+        } catch(_) {}
+    }
+
+    if (csvText) {
+        if (csvText.startsWith('ListSchema=')) csvText = csvText.replace(/^ListSchema=.*\r?\n?/,'');
+        if (!noDash) setStatus('&#10003; <strong>dados.csv</strong> encontrado — processando...', '#059669');
+        Papa.parse(csvText, {
+            header:true, skipEmptyLines:true,
+            complete: r => {
+                processData(r.data);
+                // restaura botão
+                const svgR = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>';
+                btn.innerHTML = svgR + '&nbsp;Atualizar';
+                btn.disabled = false;
+            }
+        });
+    } else {
+        // falha — exibe upload manual
+        if (noDash) {
+            const svgR = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>';
+            btn.innerHTML = svgR + '&nbsp;Atualizar';
+            btn.disabled = false;
+        } else {
+            setStatus('&#9888; <strong>dados.csv</strong> não encontrado no GitHub.', '#dc2626');
+            document.getElementById('upload-manual').style.display = 'block';
+        }
+    }
+}
+
+// Upload manual
+document.addEventListener('change', function(e) {
+    if (e.target.id !== 'file-upload') return;
+    const file = e.target.files[0];
+    if (!file) return;
+    setStatus('<div class="spinner" style="display:inline-block"></div>&nbsp;Processando arquivo...', 'var(--accent-blue)');
+    const name = file.name.toLowerCase();
+    if (name.endsWith('.csv')) {
+        const rd = new FileReader();
+        rd.onload = ev => {
+            let t = ev.target.result;
+            if (t.startsWith('ListSchema=')) t = t.replace(/^ListSchema=.*\r?\n?/,'');
+            Papa.parse(t, {header:true,skipEmptyLines:true,complete:r=>processData(r.data)});
         };
-
-        function renderRoadmapTab() {
-            // AI cards
-            document.getElementById('roadmap-ai-container').innerHTML = configRoadmap.destaquesIA.map(ia => `
-                <div class="roadmap-ai-card">
-                    <div class="roadmap-ai-header">
-                        <div class="roadmap-ai-title">${ia.nome}</div>
-                        <span class="roadmap-badge" style="${ia.corBadge}">${ia.status}</span>
-                    </div>
-                    <div class="roadmap-ai-desc">${ia.descricao}</div>
-                    <div class="roadmap-next">
-                        <span class="roadmap-next-label">Próximo Passo / Atual</span>
-                        <span class="roadmap-next-text">${ia.proximoPasso}</span>
-                    </div>
-                </div>
-            `).join('');
-
-            // Team
-            document.getElementById('roadmap-team-container').innerHTML = configRoadmap.equipeEPlanejamento.map(t => `
-                <div class="roadmap-info-item">
-                    <span class="bullet" style="background:#f97316;"></span>
-                    <span>${t}</span>
-                </div>
-            `).join('');
-
-            // Gov
-            document.getElementById('roadmap-gov-container').innerHTML = configRoadmap.governanca.map(t => `
-                <div class="roadmap-info-item">
-                    <span class="bullet" style="background:#6366f1;"></span>
-                    <span>${t}</span>
-                </div>
-            `).join('');
-
-            // Timeline
-            const icons = { done: "●", active: "●", pending: "○", backlog: "○" };
-            const iColors = { done: "q-done", active: "q-active", pending: "q-pending", backlog: "q-backlog" };
-            const tColors = { done: "q-text-done", active: "q-text-active", pending: "q-text-pending", backlog: "q-text-backlog" };
-
-            document.getElementById('roadmap-timeline-container').innerHTML = Object.entries(configRoadmap.roadmapQuarters).map(([q, items]) => {
-                const isBacklog = q.includes("Sem Data");
-                return `
-                    <div class="roadmap-q-card ${isBacklog ? 'backlog-q' : ''}">
-                        <div class="roadmap-q-title">${q}</div>
-                        <ul class="roadmap-q-list">
-                            ${items.map(p => `
-                                <li class="roadmap-q-item">
-                                    <span class="q-dot ${iColors[p.status]}">${icons[p.status]}</span>
-                                    <span class="${tColors[p.status]}">${p.nome}</span>
-                                </li>
-                            `).join('')}
-                        </ul>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // ── CONFIGURAÇÃO DO GITHUB ──
-        const GITHUB_USER = 'vrluz';
-        const GITHUB_REPO = 'dashboard-backoffice';
-        const GITHUB_BRANCH = 'main';
-        const GITHUB_FILE = 'dados.csv';
-        // URLs de busca — tenta raw primeiro, depois API como fallback
-        const GITHUB_RAW_URL = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${GITHUB_FILE}`;
-        const GITHUB_API_URL = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${GITHUB_FILE}?ref=${GITHUB_BRANCH}`;
-
-        // ── STATE ──
-        let rawData = [];
-        let currentFilter = { area: 'all', resp: 'all', prio: 'all', status: 'all' };
-        let charts = {};
-
-        window.addEventListener('DOMContentLoaded', () => {
-            renderRoadmapTab();
-            autoLoadFromGitHub();
-        });
-
-        // ── AUTO LOAD DO GITHUB ──
-        async function autoLoadFromGitHub() {
-            const dashboardVisible = document.getElementById('dashboard-main').style.display === 'block';
-            const statusEl = document.getElementById('github-status');
-            const manualSection = document.getElementById('manual-upload-section');
-            const refreshBtn = document.getElementById('btn-refresh-github');
-            const svgRefresh = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:13px;height:13px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>';
-
-            if (dashboardVisible) {
-                refreshBtn.innerHTML = '<div class="spinner" style="border-color:#334155;border-top-color:#94a3b8;width:12px;height:12px;"></div>&nbsp;Atualizando...';
-                refreshBtn.disabled = true;
-            } else {
-                statusEl.style.display = 'flex';
-                statusEl.innerHTML = '<div class="spinner"></div>&nbsp;Buscando <strong>' + GITHUB_FILE + '</strong> no GitHub...';
-            }
-
-            let csvText = null;
-
-            // Tentativa 1: raw.githubusercontent.com (sem cache-buster para evitar CORS preflight)
-            try {
-                const r = await fetch(GITHUB_RAW_URL, { cache: 'no-cache' });
-                if (r.ok) {
-                    const t = await r.text();
-                    if (t && t.trim().length > 0) csvText = t;
-                }
-            } catch (_) {}
-
-            // Tentativa 2: GitHub API (retorna base64, CORS sempre liberado)
-            if (!csvText) {
-                try {
-                    const r = await fetch(GITHUB_API_URL, {
-                        headers: { 'Accept': 'application/vnd.github.v3+json' }
-                    });
-                    if (r.ok) {
-                        const json = await r.json();
-                        if (json.content) {
-                            // Decodifica base64 com suporte a UTF-8
-                            const binary = atob(json.content.replace(/\n/g, ''));
-                            const bytes = new Uint8Array(binary.length);
-                            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-                            csvText = new TextDecoder('utf-8').decode(bytes);
-                        }
-                    }
-                } catch (_) {}
-            }
-
-            // Sucesso
-            if (csvText) {
-                if (csvText.startsWith('ListSchema=')) csvText = csvText.replace(/^ListSchema=.*\r?\n?/, '');
-
-                if (!dashboardVisible) {
-                    statusEl.innerHTML = '<span style="color:#059669;font-size:15px;">&#10003;</span>&nbsp;<strong>' + GITHUB_FILE + '</strong> carregado — processando...';
-                }
-
-                Papa.parse(csvText, {
-                    header: true, skipEmptyLines: true,
-                    complete: r => {
-                        processData(r.data);
-                        refreshBtn.innerHTML = svgRefresh + '&nbsp;Atualizar';
-                        refreshBtn.disabled = false;
-                    }
-                });
-                return;
-            }
-
-            // Falha total — exibe upload manual
-            if (dashboardVisible) {
-                refreshBtn.innerHTML = svgRefresh + '&nbsp;Atualizar';
-                refreshBtn.disabled = false;
-            } else {
-                statusEl.innerHTML = '<span style="color:#dc2626;font-size:15px;">&#9888;</span>&nbsp;<strong>' + GITHUB_FILE + '</strong> não encontrado. Carregue manualmente:';
-                manualSection.style.display = 'block';
-            }
-        }
-
-        // ── FILE UPLOAD (manual fallback) ──
-        document.addEventListener('change', function(e) {
-            if (e.target.id !== 'file-upload') return;
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const lm = document.getElementById('loading-msg');
-            lm.style.display = 'flex';
-
-            const fileName = file.name.toLowerCase();
-
-            if (fileName.endsWith('.csv')) {
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    let text = ev.target.result;
-                    if (text.startsWith('ListSchema=')) text = text.replace(/^ListSchema=.*\r?\n?/, '');
-                    Papa.parse(text, {
-                        header: true, skipEmptyLines: true,
-                        complete: r => processData(r.data)
-                    });
-                };
-                reader.readAsText(file);
-            } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    const data = new Uint8Array(ev.target.result);
-                    const wb = XLSX.read(data, { type: 'array' });
-                    const ws = wb.Sheets[wb.SheetNames[0]];
-                    processData(XLSX.utils.sheet_to_json(ws, { raw: false }));
-                };
-                reader.readAsArrayBuffer(file);
-            } else {
-                alert("Formato não suportado. Envie .csv ou .xlsx");
-                lm.style.display = 'none';
-            }
-        });
-
-        // ── BUSINESS DAYS ──
-        function calculateBusinessDays(startDate, endDate) {
-            if (!startDate || !endDate || isNaN(startDate) || isNaN(endDate)) return null;
-            if (endDate < startDate) return 0;
-            let s = new Date(startDate); let e = new Date(endDate);
-            s.setHours(0,0,0,0); e.setHours(0,0,0,0);
-            let bd = 0, cur = new Date(s);
-            while (cur <= e) { let d = cur.getDay(); if (d !== 0 && d !== 6) bd++; cur.setDate(cur.getDate()+1); }
-            bd = bd > 0 ? bd - 1 : 0;
-            if (bd === 0 && s.getTime() === e.getTime()) {
-                let fh = (endDate - startDate) / 36e5;
-                if (fh < 0) fh = 0;
-                let fr = fh / 10;
-                return fr > 1 ? 1 : fr <= 0 ? 0.1 : fr;
-            }
-            return bd === 0 ? 0.5 : bd;
-        }
-
-        function parseDateCustom(dateStr) {
-            if (!dateStr) return null;
-            const str = String(dateStr).trim();
-            if (!str) return null;
-            if (str.match(/^\d{4}-\d{2}-\d{2}/)) {
-                let fb = new Date(str.replace(' ', 'T'));
-                if (!isNaN(fb.getTime())) return fb;
-            }
-            const p = str.split(/[\s/:\-]+/);
-            if (p.length >= 3) {
-                let day = parseInt(p[0], 10), month = parseInt(p[1], 10) - 1, year = parseInt(p[2], 10);
-                if (year < 31 && p[0].length === 4) { year = parseInt(p[0],10); day = parseInt(p[2],10); }
-                if (year < 100) year += 2000;
-                let h = p.length > 3 ? parseInt(p[3],10) : 0, m = p.length > 4 ? parseInt(p[4],10) : 0, s = p.length > 5 ? parseInt(p[5],10) : 0;
-                let pd = new Date(year, month, day, h, m, s);
-                if (!isNaN(pd.getTime())) return pd;
-            }
-            return null;
-        }
-
-        function findKey(obj, keywords) {
-            const keys = Object.keys(obj);
-            for (let kw of keywords) for (let k of keys) { const ck = k.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim(); if (ck === kw || ck === `_${kw}` || ck === `x00c1_${kw}`) return k; }
-            for (let kw of keywords) for (let k of keys) { const ck = k.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim(); if (ck.includes(kw)) return k; }
-            return null;
-        }
-
-        // ── PROCESS DATA ──
-        function processData(parsedJson) {
-            rawData = [];
-            const today = new Date();
-
-            parsedJson.forEach((row, index) => {
-                const kT = findKey(row, ['assunto','titulo','title','demanda']);
-                const kR = findKey(row, ['agente','responsavel','atribuido','assignee']);
-                const kA = findKey(row, ['area','rea','grupo']);
-                const kP = findKey(row, ['prioridade','priority']);
-                const kS = findKey(row, ['status','estado','fase']);
-                const kSol = findKey(row, ['solicitante','requester','autor']);
-                const kAb = findKey(row, ['created','abertura','criacao','criado']);
-                const kCo = findKey(row, ['resolved','conclusao','fechamento','resolvido']);
-
-                if (!kT && !kAb && !kS) return;
-
-                const titulo = row[kT] ? String(row[kT]).replace(/^"|"$/g,'') : '(Sem Assunto)';
-                const dataAbertura = parseDateCustom(row[kAb]);
-                const dataConclusao = parseDateCustom(row[kCo]);
-
-                let statusRaw = (row[kS] || 'A fazer').toString().trim().replace(/^"|"$/g,'');
-                let status = statusRaw;
-                if (statusRaw.toLowerCase().match(/conclu|closed|resolv/)) status = 'Concluído';
-
-                let prioRaw = (row[kP] || 'Indefinida').toString().toLowerCase().trim();
-                let prioridade = 'Indefinida';
-                if (prioRaw.match(/low|baixa|^1$/)) prioridade = '1 - Baixa';
-                else if (prioRaw.match(/medium|media|média|^2$/)) prioridade = '2 - Média';
-                else if (prioRaw.match(/high|alta|importante|^3$/)) prioridade = '3 - Importante';
-                else if (prioRaw.match(/urgent|urgente|^4$/)) prioridade = '4 - Urgente';
-                else prioridade = row[kP] || 'Indefinida';
-
-                const doc = {
-                    id: index + 1, titulo,
-                    responsavel: row[kR] || 'Não Atribuído',
-                    area: row[kA] ? String(row[kA]).trim() : 'Não Informado',
-                    prioridade, status,
-                    solicitante: row[kSol] || 'Desconhecido',
-                    dataAbertura, dataConclusao, statusOriginal: statusRaw
-                };
-
-                doc.tempoCiclo = (status === 'Concluído' && dataConclusao && dataAbertura)
-                    ? calculateBusinessDays(dataAbertura, dataConclusao) : null;
-                doc.diasAberto = (status !== 'Concluído' && status !== 'Cancelado' && dataAbertura)
-                    ? calculateBusinessDays(dataAbertura, today) : null;
-
-                rawData.push(doc);
-            });
-
-            if (rawData.length === 0) {
-                alert("Não foi possível extrair os dados. Verifique o arquivo.");
-                document.getElementById('loading-msg').style.display = 'none';
-                return;
-            }
-
-            document.getElementById('last-update').innerText = 'Atualizado: ' + new Date().toLocaleDateString('pt-BR');
-            document.getElementById('last-update').style.display = 'block';
-            document.getElementById('btn-refresh-github').style.display = 'flex';
-            document.getElementById('upload-screen').style.display = 'none';
-            document.getElementById('dashboard-main').style.display = 'block';
-            document.getElementById('top-nav').style.display = 'block';
-
-            initDashboard();
-        }
-
-        // ── EXPORT ──
-        function exportBacklogToCSV() {
-            const openData = getFilteredData().filter(d => d.status !== 'Concluído' && d.status !== 'Cancelado');
-            if (!openData.length) { alert('Não há chamados em aberto.'); return; }
-            const csvData = openData.map(d => ({
-                "ID": d.id, "Assunto / Título": d.titulo, "Área / Grupo": d.area,
-                "Responsável / Agente": d.responsavel, "Solicitante": d.solicitante,
-                "Prioridade": d.prioridade, "Status": d.statusOriginal || d.status,
-                "Data de Abertura": d.dataAbertura ? d.dataAbertura.toLocaleString('pt-BR') : '',
-                "Dias Úteis em Aberto": d.diasAberto !== null ? d.diasAberto : ''
-            }));
-            const csv = Papa.unparse(csvData, { delimiter: ";" });
-            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = `Exportacao_Backlog_${new Date().toISOString().slice(0,10)}.csv`;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        }
-
-        // ── INIT ──
-        function initDashboard() { populateFilterOptions(); applyFilters(); }
-
-        function populateFilterOptions() {
-            const sets = { area: new Set(), resp: new Set(), prio: new Set(), status: new Set() };
-            rawData.forEach(d => { sets.area.add(d.area); sets.resp.add(d.responsavel); sets.prio.add(d.prioridade); sets.status.add(d.status); });
-
-            const fill = (id, set, skip) => {
-                const el = document.getElementById(id);
-                el.innerHTML = `<option value="all">${skip}</option>`;
-                Array.from(set).sort().forEach(v => { if (v) el.innerHTML += `<option value="${v}">${v}</option>`; });
-            };
-            fill('filter-area', sets.area, 'Todas');
-            fill('filter-resp', sets.resp, 'Todos');
-            fill('filter-prio', sets.prio, 'Todas');
-            fill('filter-status', sets.status, 'Todos');
-        }
-
-        function getFilteredData() {
-            return rawData.filter(d =>
-                (currentFilter.area === 'all' || d.area === currentFilter.area) &&
-                (currentFilter.resp === 'all' || d.responsavel === currentFilter.resp) &&
-                (currentFilter.prio === 'all' || d.prioridade === currentFilter.prio) &&
-                (currentFilter.status === 'all' || d.status === currentFilter.status)
-            );
-        }
-
-        function applyFilters() {
-            currentFilter.area = document.getElementById('filter-area').value;
-            currentFilter.resp = document.getElementById('filter-resp').value;
-            currentFilter.prio = document.getElementById('filter-prio').value;
-            currentFilter.status = document.getElementById('filter-status').value;
-            const data = getFilteredData();
-            updateKPIs(data);
-            updateOverviewCharts(data);
-            updateProductivityView(data);
-            updateBacklogView(data);
-            updateAreaView(data);
-            generateActionPlans(data);
-        }
-
-        function resetFilters() {
-            ['filter-area','filter-resp','filter-prio','filter-status'].forEach(id => document.getElementById(id).value = 'all');
-            applyFilters();
-        }
-
-        const fmtDate = d => d ? d.toLocaleDateString('pt-BR') : '-';
-
-        // ── KPIs ──
-        function updateKPIs(data) {
-            document.getElementById('kpi-total').innerText = data.length;
-            const completed = data.filter(d => d.status === 'Concluído').length;
-            document.getElementById('kpi-concluded-pct').innerText = (data.length ? ((completed/data.length)*100).toFixed(1) : 0) + '%';
-            const times = data.filter(d => d.status === 'Concluído' && d.tempoCiclo !== null && !isNaN(d.tempoCiclo)).map(d => d.tempoCiclo);
-            document.getElementById('kpi-avg-time').innerText = times.length ? (times.reduce((a,b)=>a+b,0)/times.length).toFixed(1) : '0.0';
-            const urgents = data.filter(d => String(d.prioridade).match(/^[34] -/)).length;
-            document.getElementById('kpi-urgent-pct').innerText = (data.length ? ((urgents/data.length)*100).toFixed(1) : 0) + '%';
-            const openData = data.filter(d => d.status !== 'Concluído' && d.status !== 'Cancelado');
-            document.getElementById('kpi-backlog-total').innerText = openData.length;
-            document.getElementById('kpi-backlog-urgent').innerText = openData.filter(d => String(d.prioridade).match(/^[34] -/)).length;
-        }
-
-        // ── OVERVIEW CHARTS ──
-        function updateOverviewCharts(data) {
-            const dates = {};
-            data.forEach(d => { if (d.dataAbertura) { const k = `${String(d.dataAbertura.getMonth()+1).padStart(2,'0')}/${d.dataAbertura.getFullYear()}`; dates[k] = (dates[k]||0)+1; } });
-            const sortedDates = Object.keys(dates).sort((a,b) => { const [ma,ya]=a.split('/'); const [mb,yb]=b.split('/'); return new Date(ya,ma-1)-new Date(yb,mb-1); });
-            renderChart('chart-trend','bar',{ labels: sortedDates, datasets:[{ label:'Chamados Abertos', data: sortedDates.map(k=>dates[k]), backgroundColor:'#3b82f6', borderRadius:4, borderSkipped:false }]});
-
-            const areaCounts = {};
-            data.forEach(d => { if (d.area !== 'Não Informado') areaCounts[d.area] = (areaCounts[d.area]||0)+1; });
-            const sortedAreas = Object.entries(areaCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
-            renderChart('chart-area-volume','bar',{ labels: sortedAreas.map(x=>x[0]), datasets:[{ label:'Volume', data: sortedAreas.map(x=>x[1]), backgroundColor:'#64748b', borderRadius:3, borderSkipped:false }]},{ indexAxis:'y' });
-
-            const respStats = {};
-            data.forEach(d => {
-                if (!respStats[d.responsavel]) respStats[d.responsavel] = { total:0, done:0, open:0, tSum:0, tCount:0 };
-                respStats[d.responsavel].total++;
-                if (d.status === 'Concluído') { respStats[d.responsavel].done++; if (d.tempoCiclo !== null && !isNaN(d.tempoCiclo)) { respStats[d.responsavel].tSum += d.tempoCiclo; respStats[d.responsavel].tCount++; } }
-                else if (d.status !== 'Cancelado') respStats[d.responsavel].open++;
-            });
-            document.getElementById('table-top-resp').innerHTML = Object.entries(respStats).sort((a,b)=>b[1].total-a[1].total).slice(0,5).map(([n,s]) =>
-                `<tr><td style="font-weight:600">${n}</td><td>${s.total}</td><td style="color:#059669;font-weight:700">${s.done}</td><td style="color:#d97706;font-weight:700">${s.open}</td><td style="font-weight:600; font-family:'DM Mono',monospace;">${s.tCount ? (s.tSum/s.tCount).toFixed(1) : '—'}</td></tr>`
-            ).join('');
-        }
-
-        // ── PRODUCTIVITY ──
-        function updateProductivityView(data) {
-            const rSla = {};
-            data.filter(d => d.status === 'Concluído').forEach(d => {
-                if (!rSla[d.responsavel]) rSla[d.responsavel] = { sum:0, count:0 };
-                if (d.tempoCiclo !== null && !isNaN(d.tempoCiclo)) { rSla[d.responsavel].sum += d.tempoCiclo; rSla[d.responsavel].count++; }
-            });
-            const lR = Object.keys(rSla).filter(r => rSla[r].count > 0);
-            renderChart('chart-sla-resp','bar',{ labels:lR, datasets:[{ label:'Dias Úteis', data: lR.map(r=>(rSla[r].sum/rSla[r].count).toFixed(1)), backgroundColor:'#8b5cf6', borderRadius:3, borderSkipped:false }]},{ indexAxis:'y' });
-
-            const aSla = {};
-            data.filter(d => d.status === 'Concluído' && d.area !== 'Não Informado').forEach(d => {
-                if (!aSla[d.area]) aSla[d.area] = { sum:0, count:0 };
-                if (d.tempoCiclo !== null && !isNaN(d.tempoCiclo)) { aSla[d.area].sum += d.tempoCiclo; aSla[d.area].count++; }
-            });
-            const lA = Object.keys(aSla).filter(r => aSla[r].count > 0).slice(0,15);
-            renderChart('chart-sla-area','bar',{ labels:lA, datasets:[{ label:'Dias Úteis', data: lA.map(r=>(aSla[r].sum/aSla[r].count).toFixed(1)), backgroundColor:'#10b981', borderRadius:3, borderSkipped:false }]});
-
-            document.getElementById('table-details').innerHTML = data.filter(d => d.status === 'Concluído').slice(0,100).map(d =>
-                `<tr><td class="truncate-cell" title="${d.titulo}">${d.titulo}</td><td>${d.area}</td><td>${d.responsavel}</td><td><span class="badge badge-gray">${d.prioridade}</span></td><td style="color:var(--text-muted);">${fmtDate(d.dataAbertura)}</td><td style="font-weight:700; color:var(--accent-blue); font-family:'DM Mono',monospace; text-align:center;">${d.tempoCiclo !== null && !isNaN(d.tempoCiclo) ? d.tempoCiclo.toFixed(1) : '—'}</td></tr>`
-            ).join('');
-        }
-
-        // ── BACKLOG ──
-        function updateBacklogView(data) {
-            const openData = data.filter(d => d.status !== 'Concluído' && d.status !== 'Cancelado');
-            const rB = {}; openData.forEach(d => rB[d.responsavel] = (rB[d.responsavel]||0)+1);
-            const lR = Object.keys(rB).sort((a,b)=>rB[b]-rB[a]).slice(0,10);
-            renderChart('chart-backlog-resp','bar',{ labels:lR, datasets:[{ label:'Em Aberto', data: lR.map(l=>rB[l]), backgroundColor:'#f97316', borderRadius:3, borderSkipped:false }]});
-
-            const pC = {}; openData.forEach(d => pC[d.prioridade] = (pC[d.prioridade]||0)+1);
-            renderChart('chart-backlog-prio','doughnut',{ labels: Object.keys(pC), datasets:[{ data: Object.values(pC), backgroundColor:['#ef4444','#f97316','#fbbf24','#10b981','#94a3b8'], borderWidth:2, borderColor:'#fff' }]});
-
-            document.getElementById('table-aged').innerHTML = openData.filter(d => d.diasAberto !== null && !isNaN(d.diasAberto)).sort((a,b)=>b.diasAberto-a.diasAberto).slice(0,20).map(d =>
-                `<tr><td class="truncate-cell" title="${d.titulo}" style="color:var(--text-primary); font-weight:500;">${d.titulo}</td><td>${d.responsavel}</td><td style="color:#dc2626; font-weight:700; font-family:'DM Mono',monospace;">${d.diasAberto} d.u.</td><td>${d.prioridade}</td><td><span class="badge badge-gray" style="font-size:10px; text-transform:uppercase;">${d.statusOriginal}</span></td></tr>`
-            ).join('');
-        }
-
-        // ── AREAS ──
-        function updateAreaView(data) {
-            const aC = {}; data.forEach(d => { if (d.area !== 'Não Informado') aC[d.area] = (aC[d.area]||0)+1; });
-            const areas = Object.keys(aC).sort((a,b)=>aC[b]-aC[a]).slice(0,15);
-            renderChart('chart-area-stack','bar',{ labels:areas, datasets:[{ label:'Volume Total', data: areas.map(a=>aC[a]), backgroundColor:'#3b82f6', borderRadius:3, borderSkipped:false }]});
-
-            const rC = {}; data.forEach(d => { if (!rC[d.solicitante]) rC[d.solicitante] = { count:0, area:d.area }; rC[d.solicitante].count++; });
-            document.getElementById('list-requesters').innerHTML = Object.entries(rC).sort((a,b)=>b[1].count-a[1].count).slice(0,15).map(([email, s]) =>
-                `<li class="req-item"><div><div class="req-name">${email}</div><div class="req-area">${s.area}</div></div><span class="req-count">${s.count}</span></li>`
-            ).join('');
-        }
-
-        // ── RENDER CHART ──
-        function renderChart(id, type, data, opts = {}) {
-            const ctx = document.getElementById(id).getContext('2d');
-            if (charts[id]) charts[id].destroy();
-
-            const isH = opts.indexAxis === 'y';
-            const padRight = isH ? 40 : 0;
-            const padTop = (!isH && type === 'bar') ? 25 : 0;
-            const anchor = type === 'doughnut' ? 'center' : 'end';
-            const align = type === 'doughnut' ? 'center' : (isH ? 'right' : 'top');
-            const labelColor = type === 'doughnut' ? '#fff' : '#475569';
-
-            charts[id] = new Chart(ctx, {
-                type, data,
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    layout: { padding: { top: padTop, right: padRight } },
-                    plugins: {
-                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'DM Sans' } } },
-                        datalabels: {
-                            color: labelColor, anchor, align, offset: 4,
-                            font: { weight: 'bold', size: 11, family: 'DM Mono' },
-                            formatter: v => (!v || v === 0) ? '' : (Number.isInteger(Number(v)) ? v : Number(v).toFixed(1))
-                        }
-                    },
-                    scales: type !== 'doughnut' ? {
-                        x: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'DM Sans', size: 11 } } },
-                        y: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'DM Sans', size: 11 } } }
-                    } : {},
-                    ...opts
-                }
-            });
-        }
-
-        // ── SWITCH TAB ──
-        function switchTab(name) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-            document.getElementById(`view-${name}`).classList.add('active');
-
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`tab-${name}`).classList.add('active');
-
-            const gf = document.getElementById('global-filters');
-            if (name === 'roadmap') { gf.style.display = 'none'; } else { gf.style.display = ''; }
-        }
-
-        // ── SORT TABLE ──
-        let sortAsc = false;
-        function sortTable(key) {
-            sortAsc = !sortAsc;
-            const data = getFilteredData().filter(d => d.status === 'Concluído').sort((a,b) => sortAsc ? (a[key]||0)-(b[key]||0) : (b[key]||0)-(a[key]||0));
-            document.getElementById('table-details').innerHTML = data.slice(0,100).map(d =>
-                `<tr><td class="truncate-cell" title="${d.titulo}">${d.titulo}</td><td>${d.area}</td><td>${d.responsavel}</td><td><span class="badge badge-gray">${d.prioridade}</span></td><td style="color:var(--text-muted);">${fmtDate(d.dataAbertura)}</td><td style="font-weight:700; color:var(--accent-blue); font-family:'DM Mono',monospace; text-align:center;">${d.tempoCiclo !== null && !isNaN(d.tempoCiclo) ? d.tempoCiclo.toFixed(1) : '—'}</td></tr>`
-            ).join('');
-        }
-
-        // ── ACTION PLANS / INSIGHTS ──
-        function generateActionPlans(data) {
-            const container = document.getElementById('action-plans-container');
-            if (!data.length) {
-                container.innerHTML = '<div style="color:var(--text-muted); padding:1rem;">Aguardando dados ou ajuste de filtros para gerar recomendações.</div>';
-                return;
-            }
-
-            const actions = [];
-            const openData = data.filter(d => d.status !== 'Concluído' && d.status !== 'Cancelado');
-            const closedData = data.filter(d => d.status === 'Concluído');
-            const backlogPct = (openData.length / data.length) * 100;
-
-            if (backlogPct > 25) actions.push({
-                icon: '!', title: 'Força-Tarefa: Redução de Fila',
-                desc: `Há um grande acúmulo. Chamados não finalizados representam ${backlogPct.toFixed(1)}% do volume atual visível.`,
-                action: 'Recomendamos instaurar um "Bug Bash" (esforço concentrado) bloqueando a agenda da equipe para limpeza dos itens mais antigos.'
-            });
-
-            const mirellaStats = openData.filter(d => d.responsavel.toLowerCase().includes('mirella')).length;
-            const sammyStats = openData.filter(d => d.responsavel.toLowerCase().includes('samantha')).length;
-            if (mirellaStats > 0 || sammyStats > 0) actions.push({
-                icon: 'i', title: 'Alinhamento: Nova Rotina (Mirella & Samantha)',
-                desc: `Detectamos demandas sob responsabilidade da Mirella (${mirellaStats}) e da Samantha (${sammyStats}).`,
-                action: 'Garantir que a Mirella está focada exclusivamente na esteira VIP e que todas as tratativas de Dados/Projetos foram repassadas à Samantha.'
-            });
-
-            const urgentData = data.filter(d => String(d.prioridade).match(/^[34] -|high/i));
-            const urgentPct = (urgentData.length / data.length) * 100;
-            if (urgentPct > 35) actions.push({
-                icon: '!', title: 'Calibração de Triagem (Falsas Urgências)',
-                desc: `Uma fatia desproporcional (${urgentPct.toFixed(1)}%) dos pedidos estão classificados como Alta/Urgente.`,
-                action: 'Promova alinhamento sobre a matriz de impacto. Reforce o papel da triagem em reclassificar adequadamente a criticidade.'
-            });
-
-            const avgTimes = closedData.filter(d => d.tempoCiclo !== null && !isNaN(d.tempoCiclo)).map(d => d.tempoCiclo);
-            const baselineSLA = avgTimes.length ? avgTimes.reduce((a,b)=>a+b,0)/avgTimes.length : 0;
-            if (baselineSLA > 0) {
-                const rb = Math.ceil(baselineSLA);
-                const exc = openData.filter(d => d.diasAberto !== null && !isNaN(d.diasAberto) && d.diasAberto > rb).length;
-                if (exc > 0) {
-                    actions.push({ icon: '!', title: 'Monitoramento da Meta de SLA (Baseline do Time)',
-                        desc: `Meta histórica definida em <strong>${rb} Dias Úteis</strong>.`,
-                        action: `Atenção: existem <strong>${exc} demandas em aberto</strong> que já ultrapassaram essa marca. Avalie se há impedimentos paralisando estes itens.`
-                    });
-                } else {
-                    actions.push({ icon: '✓', title: 'Meta de SLA Controlada (Baseline do Time)',
-                        desc: `A meta histórica de entrega está estabilizada em <strong>${rb} Dias Úteis</strong> por demanda.`,
-                        action: 'Excelente! Nenhuma demanda no backlog estourou essa meta. A equipe está entregando dentro da capacidade média histórica.'
-                    });
-                }
-            }
-
-            container.innerHTML = actions.map(a => `
-                <div class="insight-card">
-                    <div class="insight-icon">${a.icon}</div>
-                    <div style="flex:1;">
-                        <div class="insight-title">${a.title}</div>
-                        <div class="insight-desc">${a.desc}</div>
-                        <div class="insight-action-box">
-                            <span class="insight-action-label">Diretriz / Ação</span>
-                            <div class="insight-action-text">${a.action}</div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-    </script>
+        rd.readAsText(file);
+    } else if (name.endsWith('.xlsx')||name.endsWith('.xls')) {
+        const rd = new FileReader();
+        rd.onload = ev => {
+            const wb = XLSX.read(new Uint8Array(ev.target.result),{type:'array'});
+            processData(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{raw:false}));
+        };
+        rd.readAsArrayBuffer(file);
+    } else {
+        setStatus('&#9888; Formato não suportado. Use .csv ou .xlsx', '#dc2626');
+    }
+});
+
+// ============================================================
+// LÓGICA DO DASHBOARD (inalterada)
+// ============================================================
+function calculateBusinessDays(s,e){
+    if(!s||!e||isNaN(s)||isNaN(e)) return null;
+    if(e<s) return 0;
+    let sd=new Date(s),ed=new Date(e);
+    sd.setHours(0,0,0,0);ed.setHours(0,0,0,0);
+    let bd=0,cur=new Date(sd);
+    while(cur<=ed){let d=cur.getDay();if(d!==0&&d!==6)bd++;cur.setDate(cur.getDate()+1);}
+    bd=bd>0?bd-1:0;
+    if(bd===0&&sd.getTime()===ed.getTime()){let fh=(e-s)/36e5;if(fh<0)fh=0;let fr=fh/10;return fr>1?1:fr<=0?0.1:fr;}
+    return bd===0?0.5:bd;
+}
+
+function parseDateCustom(v){
+    if(!v) return null;
+    const s=String(v).trim();if(!s) return null;
+    if(s.match(/^\d{4}-\d{2}-\d{2}/)){let d=new Date(s.replace(' ','T'));if(!isNaN(d.getTime())) return d;}
+    const p=s.split(/[\s/:\-]+/);
+    if(p.length>=3){
+        let day=parseInt(p[0],10),mon=parseInt(p[1],10)-1,yr=parseInt(p[2],10);
+        if(yr<31&&p[0].length===4){yr=parseInt(p[0],10);day=parseInt(p[2],10);}
+        if(yr<100)yr+=2000;
+        let d=new Date(yr,mon,day,p[3]?parseInt(p[3],10):0,p[4]?parseInt(p[4],10):0,p[5]?parseInt(p[5],10):0);
+        if(!isNaN(d.getTime())) return d;
+    }
+    return null;
+}
+
+function findKey(obj,kws){
+    const keys=Object.keys(obj);
+    for(let kw of kws) for(let k of keys){const ck=k.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();if(ck===kw||ck===`_${kw}`)return k;}
+    for(let kw of kws) for(let k of keys){const ck=k.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();if(ck.includes(kw))return k;}
+    return null;
+}
+
+function processData(json){
+    rawData=[];
+    const today=new Date();
+    json.forEach((row,i)=>{
+        const kT=findKey(row,['assunto','titulo','title','demanda']);
+        const kR=findKey(row,['agente','responsavel','atribuido','assignee']);
+        const kA=findKey(row,['area','rea','grupo']);
+        const kP=findKey(row,['prioridade','priority']);
+        const kS=findKey(row,['status','estado','fase']);
+        const kSo=findKey(row,['solicitante','requester','autor']);
+        const kAb=findKey(row,['created','abertura','criacao','criado']);
+        const kCo=findKey(row,['resolved','conclusao','fechamento','resolvido']);
+        if(!kT&&!kAb&&!kS) return;
+        const titulo=row[kT]?String(row[kT]).replace(/^"|"$/g,''):'(Sem Assunto)';
+        const dAb=parseDateCustom(row[kAb]);
+        const dCo=parseDateCustom(row[kCo]);
+        let sRaw=(row[kS]||'A fazer').toString().trim().replace(/^"|"$/g,'');
+        let status=sRaw;
+        if(sRaw.toLowerCase().match(/conclu|closed|resolv/)) status='Concluído';
+        let pRaw=(row[kP]||'Indefinida').toString().toLowerCase().trim();
+        let prio='Indefinida';
+        if(pRaw.match(/low|baixa|^1$/)) prio='1 - Baixa';
+        else if(pRaw.match(/medium|media|m.dia|^2$/)) prio='2 - Média';
+        else if(pRaw.match(/high|alta|importante|^3$/)) prio='3 - Importante';
+        else if(pRaw.match(/urgent|urgente|^4$/)) prio='4 - Urgente';
+        else prio=row[kP]||'Indefinida';
+        const doc={id:i+1,titulo,responsavel:row[kR]||'Não Atribuído',area:row[kA]?String(row[kA]).trim():'Não Informado',prioridade:prio,status,solicitante:row[kSo]||'Desconhecido',dataAbertura:dAb,dataConclusao:dCo,statusOriginal:sRaw};
+        doc.tempoCiclo=(status==='Concluído'&&dCo&&dAb)?calculateBusinessDays(dAb,dCo):null;
+        doc.diasAberto=(status!=='Concluído'&&status!=='Cancelado'&&dAb)?calculateBusinessDays(dAb,today):null;
+        rawData.push(doc);
+    });
+    if(!rawData.length){ setStatus('&#9888; Não foi possível extrair dados. Verifique o arquivo.','#dc2626'); return; }
+    document.getElementById('last-update').innerText='Atualizado: '+new Date().toLocaleDateString('pt-BR');
+    document.getElementById('last-update').style.display='block';
+    document.getElementById('btn-refresh').style.display='flex';
+    document.getElementById('upload-screen').style.display='none';
+    document.getElementById('dashboard-main').style.display='block';
+    document.getElementById('top-nav').style.display='block';
+    initDashboard();
+}
+
+function exportBacklogToCSV(){
+    const od=getFilteredData().filter(d=>d.status!=='Concluído'&&d.status!=='Cancelado');
+    if(!od.length){alert('Não há chamados em aberto.');return;}
+    const csv=Papa.unparse(od.map(d=>({"ID":d.id,"Assunto / Título":d.titulo,"Área / Grupo":d.area,"Responsável / Agente":d.responsavel,"Solicitante":d.solicitante,"Prioridade":d.prioridade,"Status":d.statusOriginal||d.status,"Data de Abertura":d.dataAbertura?d.dataAbertura.toLocaleString('pt-BR'):'', "Dias Úteis em Aberto":d.diasAberto!==null?d.diasAberto:''})),{delimiter:";"});
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:'text/csv;charset=utf-8;'}));a.download=`Exportacao_Backlog_${new Date().toISOString().slice(0,10)}.csv`;document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+function initDashboard(){populateFilterOptions();applyFilters();}
+
+function populateFilterOptions(){
+    const sets={area:new Set(),resp:new Set(),prio:new Set(),status:new Set()};
+    rawData.forEach(d=>{sets.area.add(d.area);sets.resp.add(d.responsavel);sets.prio.add(d.prioridade);sets.status.add(d.status);});
+    const fill=(id,set,def)=>{const el=document.getElementById(id);el.innerHTML=`<option value="all">${def}</option>`;Array.from(set).sort().forEach(v=>{if(v)el.innerHTML+=`<option value="${v}">${v}</option>`;});};
+    fill('filter-area',sets.area,'Todas');fill('filter-resp',sets.resp,'Todos');fill('filter-prio',sets.prio,'Todas');fill('filter-status',sets.status,'Todos');
+}
+
+function getFilteredData(){
+    return rawData.filter(d=>(currentFilter.area==='all'||d.area===currentFilter.area)&&(currentFilter.resp==='all'||d.responsavel===currentFilter.resp)&&(currentFilter.prio==='all'||d.prioridade===currentFilter.prio)&&(currentFilter.status==='all'||d.status===currentFilter.status));
+}
+
+function applyFilters(){
+    currentFilter.area=document.getElementById('filter-area').value;
+    currentFilter.resp=document.getElementById('filter-resp').value;
+    currentFilter.prio=document.getElementById('filter-prio').value;
+    currentFilter.status=document.getElementById('filter-status').value;
+    const data=getFilteredData();
+    updateKPIs(data);updateOverviewCharts(data);updateProductivityView(data);updateBacklogView(data);updateAreaView(data);generateActionPlans(data);
+}
+
+function resetFilters(){['filter-area','filter-resp','filter-prio','filter-status'].forEach(id=>document.getElementById(id).value='all');applyFilters();}
+
+const fmtDate=d=>d?d.toLocaleDateString('pt-BR'):'-';
+
+function updateKPIs(data){
+    document.getElementById('kpi-total').innerText=data.length;
+    const done=data.filter(d=>d.status==='Concluído').length;
+    document.getElementById('kpi-concluded-pct').innerText=(data.length?((done/data.length)*100).toFixed(1):0)+'%';
+    const times=data.filter(d=>d.status==='Concluído'&&d.tempoCiclo!==null&&!isNaN(d.tempoCiclo)).map(d=>d.tempoCiclo);
+    document.getElementById('kpi-avg-time').innerText=times.length?(times.reduce((a,b)=>a+b,0)/times.length).toFixed(1):'0.0';
+    const urg=data.filter(d=>String(d.prioridade).match(/^[34] -/)).length;
+    document.getElementById('kpi-urgent-pct').innerText=(data.length?((urg/data.length)*100).toFixed(1):0)+'%';
+    const od=data.filter(d=>d.status!=='Concluído'&&d.status!=='Cancelado');
+    document.getElementById('kpi-backlog-total').innerText=od.length;
+    document.getElementById('kpi-backlog-urgent').innerText=od.filter(d=>String(d.prioridade).match(/^[34] -/)).length;
+}
+
+function updateOverviewCharts(data){
+    const dates={};
+    data.forEach(d=>{if(d.dataAbertura){const k=`${String(d.dataAbertura.getMonth()+1).padStart(2,'0')}/${d.dataAbertura.getFullYear()}`;dates[k]=(dates[k]||0)+1;}});
+    const sd=Object.keys(dates).sort((a,b)=>{const[ma,ya]=a.split('/');const[mb,yb]=b.split('/');return new Date(ya,ma-1)-new Date(yb,mb-1);});
+    renderChart('chart-trend','bar',{labels:sd,datasets:[{label:'Chamados Abertos',data:sd.map(k=>dates[k]),backgroundColor:'#3b82f6',borderRadius:4,borderSkipped:false}]});
+    const ac={};data.forEach(d=>{if(d.area!=='Não Informado')ac[d.area]=(ac[d.area]||0)+1;});
+    const sa=Object.entries(ac).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    renderChart('chart-area-volume','bar',{labels:sa.map(x=>x[0]),datasets:[{label:'Volume',data:sa.map(x=>x[1]),backgroundColor:'#64748b',borderRadius:3,borderSkipped:false}]},{indexAxis:'y'});
+    const rs={};
+    data.forEach(d=>{if(!rs[d.responsavel])rs[d.responsavel]={total:0,done:0,open:0,ts:0,tc:0};rs[d.responsavel].total++;if(d.status==='Concluído'){rs[d.responsavel].done++;if(d.tempoCiclo!==null&&!isNaN(d.tempoCiclo)){rs[d.responsavel].ts+=d.tempoCiclo;rs[d.responsavel].tc++;}}else if(d.status!=='Cancelado')rs[d.responsavel].open++;});
+    document.getElementById('table-top-resp').innerHTML=Object.entries(rs).sort((a,b)=>b[1].total-a[1].total).slice(0,5).map(([n,s])=>`<tr><td style="font-weight:600">${n}</td><td>${s.total}</td><td style="color:#059669;font-weight:700">${s.done}</td><td style="color:#d97706;font-weight:700">${s.open}</td><td style="font-weight:600;font-family:'DM Mono',monospace">${s.tc?(s.ts/s.tc).toFixed(1):'—'}</td></tr>`).join('');
+}
+
+function updateProductivityView(data){
+    const rs={};data.filter(d=>d.status==='Concluído').forEach(d=>{if(!rs[d.responsavel])rs[d.responsavel]={sum:0,count:0};if(d.tempoCiclo!==null&&!isNaN(d.tempoCiclo)){rs[d.responsavel].sum+=d.tempoCiclo;rs[d.responsavel].count++;}});
+    const lr=Object.keys(rs).filter(r=>rs[r].count>0);
+    renderChart('chart-sla-resp','bar',{labels:lr,datasets:[{label:'Dias Úteis',data:lr.map(r=>(rs[r].sum/rs[r].count).toFixed(1)),backgroundColor:'#8b5cf6',borderRadius:3,borderSkipped:false}]},{indexAxis:'y'});
+    const as={};data.filter(d=>d.status==='Concluído'&&d.area!=='Não Informado').forEach(d=>{if(!as[d.area])as[d.area]={sum:0,count:0};if(d.tempoCiclo!==null&&!isNaN(d.tempoCiclo)){as[d.area].sum+=d.tempoCiclo;as[d.area].count++;}});
+    const la=Object.keys(as).filter(r=>as[r].count>0).slice(0,15);
+    renderChart('chart-sla-area','bar',{labels:la,datasets:[{label:'Dias Úteis',data:la.map(r=>(as[r].sum/as[r].count).toFixed(1)),backgroundColor:'#10b981',borderRadius:3,borderSkipped:false}]});
+    document.getElementById('table-details').innerHTML=data.filter(d=>d.status==='Concluído').slice(0,100).map(d=>`<tr><td class="truncate-cell" title="${d.titulo}">${d.titulo}</td><td>${d.area}</td><td>${d.responsavel}</td><td><span class="badge badge-gray">${d.prioridade}</span></td><td style="color:var(--text-muted)">${fmtDate(d.dataAbertura)}</td><td style="font-weight:700;color:var(--accent-blue);font-family:'DM Mono',monospace;text-align:center">${d.tempoCiclo!==null&&!isNaN(d.tempoCiclo)?d.tempoCiclo.toFixed(1):'—'}</td></tr>`).join('');
+}
+
+function updateBacklogView(data){
+    const od=data.filter(d=>d.status!=='Concluído'&&d.status!=='Cancelado');
+    const rb={};od.forEach(d=>rb[d.responsavel]=(rb[d.responsavel]||0)+1);
+    const lr=Object.keys(rb).sort((a,b)=>rb[b]-rb[a]).slice(0,10);
+    renderChart('chart-backlog-resp','bar',{labels:lr,datasets:[{label:'Em Aberto',data:lr.map(l=>rb[l]),backgroundColor:'#f97316',borderRadius:3,borderSkipped:false}]});
+    const pc={};od.forEach(d=>pc[d.prioridade]=(pc[d.prioridade]||0)+1);
+    renderChart('chart-backlog-prio','doughnut',{labels:Object.keys(pc),datasets:[{data:Object.values(pc),backgroundColor:['#ef4444','#f97316','#fbbf24','#10b981','#94a3b8'],borderWidth:2,borderColor:'#fff'}]});
+    document.getElementById('table-aged').innerHTML=od.filter(d=>d.diasAberto!==null&&!isNaN(d.diasAberto)).sort((a,b)=>b.diasAberto-a.diasAberto).slice(0,20).map(d=>`<tr><td class="truncate-cell" title="${d.titulo}" style="color:var(--text-primary);font-weight:500">${d.titulo}</td><td>${d.responsavel}</td><td style="color:#dc2626;font-weight:700;font-family:'DM Mono',monospace">${d.diasAberto} d.u.</td><td>${d.prioridade}</td><td><span class="badge badge-gray" style="font-size:10px;text-transform:uppercase">${d.statusOriginal}</span></td></tr>`).join('');
+}
+
+function updateAreaView(data){
+    const ac={};data.forEach(d=>{if(d.area!=='Não Informado')ac[d.area]=(ac[d.area]||0)+1;});
+    const ar=Object.keys(ac).sort((a,b)=>ac[b]-ac[a]).slice(0,15);
+    renderChart('chart-area-stack','bar',{labels:ar,datasets:[{label:'Volume Total',data:ar.map(a=>ac[a]),backgroundColor:'#3b82f6',borderRadius:3,borderSkipped:false}]});
+    const rc={};data.forEach(d=>{if(!rc[d.solicitante])rc[d.solicitante]={count:0,area:d.area};rc[d.solicitante].count++;});
+    document.getElementById('list-requesters').innerHTML=Object.entries(rc).sort((a,b)=>b[1].count-a[1].count).slice(0,15).map(([e,s])=>`<li class="req-item"><div><div class="req-name">${e}</div><div class="req-area">${s.area}</div></div><span class="req-count">${s.count}</span></li>`).join('');
+}
+
+function renderChart(id,type,data,opts={}){
+    const ctx=document.getElementById(id).getContext('2d');
+    if(charts[id])charts[id].destroy();
+    const isH=opts.indexAxis==='y';
+    charts[id]=new Chart(ctx,{type,data,options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:(!isH&&type==='bar')?25:0,right:isH?40:0}},plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{family:'DM Sans'}}},datalabels:{color:type==='doughnut'?'#fff':'#475569',anchor:type==='doughnut'?'center':'end',align:type==='doughnut'?'center':(isH?'right':'top'),offset:4,font:{weight:'bold',size:11,family:'DM Mono'},formatter:v=>(!v||v===0)?'':(Number.isInteger(Number(v))?v:Number(v).toFixed(1))}},scales:type!=='doughnut'?{x:{grid:{color:'#f1f5f9'},ticks:{font:{family:'DM Sans',size:11}}},y:{grid:{color:'#f1f5f9'},ticks:{font:{family:'DM Sans',size:11}}}}:{},...opts}});
+}
+
+function switchTab(name){
+    document.querySelectorAll('.view-section').forEach(el=>el.classList.remove('active'));
+    document.getElementById(`view-${name}`).classList.add('active');
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById(`tab-${name}`).classList.add('active');
+    document.getElementById('global-filters').style.display=name==='roadmap'?'none':'';
+}
+
+let sortAsc=false;
+function sortTable(key){
+    sortAsc=!sortAsc;
+    const data=getFilteredData().filter(d=>d.status==='Concluído').sort((a,b)=>sortAsc?(a[key]||0)-(b[key]||0):(b[key]||0)-(a[key]||0));
+    document.getElementById('table-details').innerHTML=data.slice(0,100).map(d=>`<tr><td class="truncate-cell" title="${d.titulo}">${d.titulo}</td><td>${d.area}</td><td>${d.responsavel}</td><td><span class="badge badge-gray">${d.prioridade}</span></td><td style="color:var(--text-muted)">${fmtDate(d.dataAbertura)}</td><td style="font-weight:700;color:var(--accent-blue);font-family:'DM Mono',monospace;text-align:center">${d.tempoCiclo!==null&&!isNaN(d.tempoCiclo)?d.tempoCiclo.toFixed(1):'—'}</td></tr>`).join('');
+}
+
+function generateActionPlans(data){
+    const container=document.getElementById('action-plans-container');
+    if(!data.length){container.innerHTML='<div style="color:var(--text-muted);padding:1rem">Aguardando dados ou ajuste de filtros.</div>';return;}
+    const actions=[];
+    const od=data.filter(d=>d.status!=='Concluído'&&d.status!=='Cancelado');
+    const cd=data.filter(d=>d.status==='Concluído');
+    const bp=(od.length/data.length)*100;
+    if(bp>25)actions.push({icon:'!',title:'Força-Tarefa: Redução de Fila',desc:`Chamados não finalizados representam ${bp.toFixed(1)}% do volume atual.`,action:'Recomendamos instaurar um "Bug Bash" bloqueando a agenda da equipe para limpeza dos itens mais antigos.'});
+    const ms=od.filter(d=>d.responsavel.toLowerCase().includes('mirella')).length;
+    const ss=od.filter(d=>d.responsavel.toLowerCase().includes('samantha')).length;
+    if(ms>0||ss>0)actions.push({icon:'i',title:'Alinhamento: Nova Rotina (Mirella & Samantha)',desc:`Demandas sob responsabilidade da Mirella (${ms}) e da Samantha (${ss}).`,action:'Garantir que a Mirella está focada na esteira VIP e que as tratativas de Dados/Projetos foram repassadas à Samantha.'});
+    const up=(data.filter(d=>String(d.prioridade).match(/^[34] -|high/i)).length/data.length)*100;
+    if(up>35)actions.push({icon:'!',title:'Calibração de Triagem (Falsas Urgências)',desc:`${up.toFixed(1)}% dos pedidos classificados como Alta/Urgente.`,action:'Promova alinhamento sobre a matriz de impacto e reforce o papel da triagem.'});
+    const avg=cd.filter(d=>d.tempoCiclo!==null&&!isNaN(d.tempoCiclo)).map(d=>d.tempoCiclo);
+    const bl=avg.length?avg.reduce((a,b)=>a+b,0)/avg.length:0;
+    if(bl>0){const rb=Math.ceil(bl);const ex=od.filter(d=>d.diasAberto!==null&&!isNaN(d.diasAberto)&&d.diasAberto>rb).length;
+        if(ex>0)actions.push({icon:'!',title:'Monitoramento da Meta de SLA (Baseline do Time)',desc:`Meta histórica definida em <strong>${rb} Dias Úteis</strong>.`,action:`Atenção: <strong>${ex} demandas em aberto</strong> já ultrapassaram essa marca. Avalie impedimentos.`});
+        else actions.push({icon:'✓',title:'Meta de SLA Controlada (Baseline do Time)',desc:`Meta histórica estabilizada em <strong>${rb} Dias Úteis</strong> por demanda.`,action:'Excelente! Nenhuma demanda no backlog estourou essa meta. A equipe está dentro da capacidade média histórica.'});
+    }
+    container.innerHTML=actions.map(a=>`<div class="insight-card"><div class="insight-icon">${a.icon}</div><div style="flex:1"><div class="insight-title">${a.title}</div><div class="insight-desc">${a.desc}</div><div class="insight-action-box"><span class="insight-action-label">Diretriz / Ação</span><div class="insight-action-text">${a.action}</div></div></div></div>`).join('');
+}
+
+// INIT
+window.addEventListener('DOMContentLoaded', () => {
+    renderRoadmapTab();
+    carregarDoGitHub();
+});
+</script>
 </body>
 </html>
